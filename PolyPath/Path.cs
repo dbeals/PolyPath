@@ -102,7 +102,7 @@ namespace PolyPath
 		#endregion
 
 		#region Methods
-		public Vector2 GetDistanceToNextWaypoint(Vector2 position)
+		public Vector2 GetDistanceVectorToNextWaypoint(Vector2 position)
 		{
 			return NextWaypoint == null ? Vector2.Zero : NextWaypoint.Value - position;
 		}
