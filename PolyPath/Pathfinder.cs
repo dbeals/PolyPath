@@ -75,6 +75,30 @@ namespace PolyPath
 		#endregion
 
 		#region Methods
+		private bool ContinuesHorizontally(Point previousPoint, Point currentPoint, Point nextPoint)
+		{
+			return currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
+		}
+
+		private bool ContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint)
+		{
+			return currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
+		}
+
+		private bool ContinuesDiagonallyTest(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset)
+		{
+			return (currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y) &&
+				(currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y);
+		}
+
+		private bool ContinuesDiagonally(Point previousPoint, Point currentPoint, Point nextPoint)
+		{
+			return ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, -1) ||
+				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, 1) ||
+				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, 1) ||
+				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, -1);
+		}
+
 		private Point[] CreatePath(PathTreeNode node, out int depth)
 		{
 			var output = new List<Point>();
@@ -95,8 +119,7 @@ namespace PolyPath
 					var currentPoint = output[index];
 					var nextPoint = output[index + 1];
 
-					if((currentPoint.X == nextPoint.X && currentPoint.Y != nextPoint.Y && nextPoint.X == previousPoint.X) ||
-						(currentPoint.Y == nextPoint.Y && currentPoint.X != nextPoint.X && nextPoint.Y == previousPoint.Y))
+					if(ContinuesHorizontally(previousPoint, currentPoint, nextPoint) || ContinuesVertically(previousPoint, currentPoint, nextPoint) || ContinuesDiagonally(previousPoint, currentPoint, nextPoint))
 						indicesToRemove.Add(index);
 				}
 

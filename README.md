@@ -8,10 +8,10 @@ The first step is to generate the pathing grid. We do so by adding points to the
 var pathingPolygon = new PolyPath.PathingPolygon();
 pathingPolygon.UseTightTests = true;
 // Create a cube
-pathingPolygon.AddPoint(new Point(10, 10));
-pathingPolygon.AddPoint(new Point(300, 10));
-pathingPolygon.AddPoint(new Point(300, 300));
-pathingPolygon.AddPoint(new Point(10, 300));
+pathingPolygon.Points.Add(new Point(10, 10));
+pathingPolygon.Points.Add(new Point(300, 10));
+pathingPolygon.Points.Add(new Point(300, 300));
+pathingPolygon.Points.Add(new Point(10, 300));
 pathingPolygon.Close();
 pathingPolygon.CreateGrid(16, 16);
 ```
@@ -45,7 +45,7 @@ We now have a set of waypoints and can move along them:
 if(path.Length == 0)
 	return;
 	
-if(path.GetDistanceToNextWaypoint(PlayerObject.Position).Length < WereCloseEnoughToMoveToTheNextWaypointConstant))
+if(path.GetDistanceVectorToNextWaypoint(PlayerObject.Position).Length < WereCloseEnoughToMoveToTheNextWaypointConstant))
 	path.PopWaypoint();
 
 if(path.NextWaypoint != null)
@@ -59,6 +59,3 @@ There are still a few things that need to be added:
 
 **Weighting**
 The algorithm does not currently incorporate weights.
-
-**Diagonal Pathing Trimming**
-The path trimming currently only cuts out horizontal and vertical nodes; we need to add the ability to cut out diagonal nodes.
