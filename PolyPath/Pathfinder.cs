@@ -61,7 +61,7 @@ namespace PolyPath
 			set;
 		}
 
-		public Func<int, int, bool> CheckNode
+		public Func<int, int, FindPathData, bool> CheckNode
 		{
 			get;
 			set;
@@ -99,7 +99,7 @@ namespace PolyPath
 				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, -1);
 		}
 
-		private Point[] CreatePath(PathTreeNode node, out int depth)
+		private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData = null)
 		{
 			var output = new List<Point>();
 			var parent = node;
@@ -107,6 +107,24 @@ namespace PolyPath
 			{
 				output.Insert(0, parent.Position);
 				parent = parent.Parent;
+			}
+
+			if(userData != null)
+			{
+				if(userData.PopFirstWaypoint)
+					output.RemoveAt(0);
+
+				if(userData.PopLastNWaypoints > 0)
+				{
+					if(userData.PopLastNWaypoints > output.Count)
+					{
+						depth = 0;
+						output.Clear();
+						return output.ToArray();
+					}
+
+					output.RemoveRange(output.Count - userData.PopLastNWaypoints, userData.PopLastNWaypoints);
+				}
 			}
 			depth = output.Count;
 
@@ -144,10 +162,10 @@ namespace PolyPath
 			return false;
 		}
 
-		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, List<PathTreeNode> openNodes, List<PathTreeNode> closedNodes)
+		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, List<PathTreeNode> openNodes, List<PathTreeNode> closedNodes, FindPathData userData)
 		{
 			var newNode = new PathTreeNode(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset, currentNode, 0);
-			if((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y)) &&
+			if((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y, userData)) &&
 				!CheckNodeList(closedNodes, newNode.Position) &&
 				!CheckNodeList(openNodes, newNode.Position))
 			{
@@ -157,12 +175,12 @@ namespace PolyPath
 			return null;
 		}
 
-		public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth)
+		public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth, FindPathData userData = null)
 		{
-			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth);
+			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth, userData);
 		}
 
-		public Point[] FindPath(Point startPosition, Point endPosition, out int depth)
+		public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData = null)
 		{
 			var closedNodes = new List<PathTreeNode>();
 			var openNodes = new List<PathTreeNode>();
@@ -182,23 +200,23 @@ namespace PolyPath
 				if(!closedNodes.Contains(currentNode))
 				{
 					if(currentPosition == endPosition)
-						return CreatePath(currentNode, out depth);
+						return CreatePath(currentNode, out depth, userData);
 
 					PathTreeNode left = null, up = null, right = null, down = null;
 
-					left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes);
-					up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes);
-					right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes);
-					down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes);
+					left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, userData);
+					up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, userData);
+					right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, userData);
+					down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, userData);
 
 					if(left != null && up != null)
-						ProcessNode(currentNode, -1, -1, openNodes, closedNodes);
+						ProcessNode(currentNode, -1, -1, openNodes, closedNodes, userData);
 					if(right != null && up != null)
-						ProcessNode(currentNode, 1, -1, openNodes, closedNodes);
+						ProcessNode(currentNode, 1, -1, openNodes, closedNodes, userData);
 					if(right != null && down != null)
-						ProcessNode(currentNode, 1, 1, openNodes, closedNodes);
+						ProcessNode(currentNode, 1, 1, openNodes, closedNodes, userData);
 					if(left != null && down != null)
-						ProcessNode(currentNode, -1, 1, openNodes, closedNodes);
+						ProcessNode(currentNode, -1, 1, openNodes, closedNodes, userData);
 
 					closedNodes.Add(currentNode);
 				}
@@ -206,15 +224,15 @@ namespace PolyPath
 			}
 		}
 
-		public Path FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon)
+		public Path FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon, FindPathData userData = null)
 		{
-			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon);
+			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon, userData);
 		}
 
-		public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon)
+		public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData = null)
 		{
 			int depth;
-			var pathPoints = FindPath(startPosition, endPosition, out depth);
+			var pathPoints = FindPath(startPosition, endPosition, out depth, userData);
 			if(pathPoints == null)
 				return null;
 			var output = new Path();

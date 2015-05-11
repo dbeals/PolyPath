@@ -224,6 +224,37 @@ namespace PolyPath
 		{
 			return GetNodeAtColumnRow(point.X, point.Y);
 		}
+
+		public bool ContainsColumnRow(int column, int row)
+		{
+			return column >= 0 && column < Width && row >= 0 && row < Height;
+		}
+
+		public void DebugDraw(Action<Point, Point, int> drawLine, Action<PathingGridNode> drawNode)
+		{
+			if(drawNode != null && IsClosed)
+			{
+				foreach(var node in Nodes)
+				{
+					if(!node.IsPathable)
+						continue;
+
+					drawNode(node);
+				}
+			}
+
+			if(drawLine != null && Points.Count > 1)
+			{
+				var boxSize = 8;
+				var boxOffset = boxSize / 2;
+				for(var index = 0; index < Points.Count - 1; ++index)
+				{
+					var start = Points[index];
+					var end = Points[index + 1];
+					drawLine(start, end, index);
+				}
+			}
+		}
 		#endregion
 	}
 

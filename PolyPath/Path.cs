@@ -34,6 +34,7 @@ Description: The Path class, which contains the generated path as a set
 #endregion
 
 #region Using Statements
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -139,6 +140,19 @@ namespace PolyPath
 		public void Clear()
 		{
 			waypoints.Clear();
+		}
+
+		public void DebugDraw(Action<Point, Point, int> drawLine)
+		{
+			if(drawLine == null)
+				return;
+
+			for(var index = 0; index < waypoints.Count - 1; ++index)
+			{
+				var current = waypoints[index];
+				var next = waypoints[index + 1];
+				drawLine(current.ToPoint(), next.ToPoint(), index);
+			}
 		}
 		#endregion
 	}

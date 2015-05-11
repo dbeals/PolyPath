@@ -1,4 +1,5 @@
-﻿using ExampleGame.Input;
+﻿using System;
+using ExampleGame.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -44,11 +45,9 @@ namespace ExampleGame
 			inputManager.MouseButtonStateChanged += inputManager_MouseButtonStateChanged;
 			inputManager.MouseMoved += inputManager_MouseMoved;
 
-			pathfinder.CheckNode = (column, row) =>
+			pathfinder.CheckNode = (column, row, userData) =>
 			{
-				if(column < 0 || column >= pathingPolygon.Width)
-					return false;
-				if(row < 0 || row >= pathingPolygon.Height)
+				if(!pathingPolygon.ContainsColumnRow(column, row))
 					return false;
 
 				return pathingPolygon.Nodes[(row * pathingPolygon.Width) + column].IsPathable;
@@ -331,51 +330,39 @@ namespace ExampleGame
 			if(background != null)
 				spriteBatch.Draw(background, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
 
+			Color boxColor = Color.Maroon;
+			Color lineColor = Color.Red;
+			Action<Point, Point, int> drawLine = (start, end, index) =>
+			{
+				var boxSize = 8;
+				var boxOffset = boxSize / 2;
+
+				if(index == 0)
+					renderer.FillRectangle(spriteBatch, new Rectangle(start.X - boxOffset, start.Y - boxOffset, boxSize, boxSize), boxColor);
+				renderer.FillRectangle(spriteBatch, new Rectangle(end.X - boxOffset, end.Y - boxOffset, boxSize, boxSize), boxColor);
+				renderer.DrawLine(spriteBatch, start.X, start.Y, end.X, end.Y, lineColor);
+			};
+
+			Action<PathingGridNode> drawNode = (node) =>
+			{
+				renderer.DrawRectangle(spriteBatch, node.Bounds, Color.White);
+			};
+
+			pathingPolygon.DebugDraw(drawLine, drawNode);
+
 			if(pathingPolygon.IsClosed)
 			{
 				if(startNode != null)
 					renderer.FillRectangle(spriteBatch, startNode.Value.Bounds, Color.Green);
 				if(endNode != null)
 					renderer.FillRectangle(spriteBatch, endNode.Value.Bounds, Color.Red);
-
-				foreach(var node in pathingPolygon.Nodes)
-				{
-					if(!node.IsPathable)
-						continue;
-					renderer.DrawRectangle(spriteBatch, node.Bounds, Color.White);
-				}
 			}
 
-			if(path != null && path.Length > 0)
+			if(path != null)
 			{
-				var boxSize = 8;
-				var boxOffset = boxSize / 2;
-				renderer.FillRectangle(spriteBatch, new Rectangle((int)path.Waypoints[0].X - boxOffset, (int)path.Waypoints[0].Y - boxOffset, boxSize, boxSize), Color.Yellow);
-				for(var index = 1; index < path.Length; ++index)
-				{
-					var previous = path.Waypoints[index - 1];
-					var current = path.Waypoints[index];
-					renderer.FillRectangle(spriteBatch, new Rectangle((int)path.Waypoints[index].X - boxOffset, (int)path.Waypoints[index].Y - boxOffset, boxSize, boxSize), Color.Yellow);
-					renderer.DrawLine(spriteBatch, previous.X, previous.Y, current.X, current.Y, Color.Green);
-				}
-			}
-
-			if(polygonPoints.Length > 1)
-			{
-				var boxSize = 8;
-				var boxOffset = boxSize / 2;
-				for(var index = 0; index < polygonPoints.Length; ++index)
-				{
-					if(index + 1 >= polygonPoints.Length)
-						break;
-
-					var start = polygonPoints[index];
-					var end = polygonPoints[index + 1];
-					if(index == 0)
-						renderer.FillRectangle(spriteBatch, new Rectangle(start.X - boxOffset, start.Y - boxOffset, boxSize, boxSize), Color.Maroon);
-					renderer.FillRectangle(spriteBatch, new Rectangle(end.X - boxOffset, end.Y - boxOffset, boxSize, boxSize), Color.Maroon);
-					renderer.DrawLine(spriteBatch, start.X, start.Y, end.X, end.Y, Color.Red);
-				}
+				boxColor = Color.Yellow;
+				lineColor = Color.Green;
+				path.DebugDraw(drawLine);
 			}
 
 			if(showHelp)
