@@ -245,8 +245,6 @@ namespace PolyPath
 
 			if(drawLine != null && Points.Count > 1)
 			{
-				var boxSize = 8;
-				var boxOffset = boxSize / 2;
 				for(var index = 0; index < Points.Count - 1; ++index)
 				{
 					var start = Points[index];
