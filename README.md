@@ -1,4 +1,7 @@
 #PolyPath
+
+**Please note that this library is still in it's early stages and has not been used with any projects. As such, it may go through a few major changes as we develop it.**
+
 PolyPath is designed for use in a non-grid based game. You provide a polygon and the system generates a grid inside of that, which is then used to generate a path (using the A* algorithm.)
 
 #Finding our way
@@ -54,12 +57,24 @@ if(path.NextWaypoint != null)
 }
 ```
 
+#Using the new FindPathData
+We have added a new class named FindPathData. This is considered a base class, but it can be used by itself. It has two properties: PopFirstWaypoint and PopLastNWaypoints.
+
+**PopFirstWaypoint**
+
+PopFirstWaypoint is an item that should most likely be set to true, otherwise your mover will move to the center of the node they are standing on before moving to the next waypoint.
+
+The first node is popped BEFORE trimming is done.
+
+**PopLastNWaypoints**
+
+PopLastNWaypoints allows makes is meant to be used when moving an object to another object. Instead of trying to move them to a certain point within a range of the target object, simply have the system pop the last 2 or 3 waypoints off (depending on the size of the grid you're using; with our current project we're using 16 pixel nodes and popping 2 still seemed too close, so we pop 3.)
+
+The nodes are popped BEFORE trimming is done.
+
 #To-do
+
 There are still a few things that need to be added:
 
 **Weighting**
 The algorithm does not currently incorporate weights.
-
-#Change Log
-
-+ 2015-05-27 (dbeals) - Added PopWaypointTest to FindPathData class to allow trimming of waypoints after a path has been found.
