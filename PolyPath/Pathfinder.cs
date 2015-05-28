@@ -111,6 +111,22 @@ namespace PolyPath
 
 			if(userData != null)
 			{
+				var poppingWaypoints = false;
+				for(var index = output.Count - 1; index >= 0; --index)
+				{
+					poppingWaypoints = userData.PopWaypointTest(output[index], index);
+					if(!poppingWaypoints)
+						break;
+
+					output.RemoveAt(index);
+				}
+
+				if(output.Count == 0)
+				{
+					depth = 0;
+					return output.ToArray();
+				}
+
 				if(userData.PopFirstWaypoint)
 					output.RemoveAt(0);
 

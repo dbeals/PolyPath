@@ -59,3 +59,7 @@ There are still a few things that need to be added:
 
 **Weighting**
 The algorithm does not currently incorporate weights.
+
+#Change Log
+
++ 2015-05-27 (dbeals) - Added PopWaypointTest to FindPathData class to allow trimming of waypoints after a path has been found.

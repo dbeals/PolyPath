@@ -11,7 +11,7 @@ Description: TODO: Write a description of this file here.
 #endregion
 
 #region Using Statements
-
+using Microsoft.Xna.Framework;
 #endregion
 
 namespace PolyPath
@@ -38,6 +38,13 @@ namespace PolyPath
 		#region Constructors
 		public FindPathData()
 		{
+		}
+		#endregion
+
+		#region Methods
+		public virtual bool PopWaypointTest(Point nodePosition, int index)
+		{
+			return false;
 		}
 		#endregion
 	}
