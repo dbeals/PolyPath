@@ -58,7 +58,14 @@ if(path.NextWaypoint != null)
 ```
 
 #Using the new FindPathData
-We have added a new class named FindPathData. This is considered a base class, but it can be used by itself. It has two properties: PopFirstWaypoint and PopLastNWaypoints.
+We have added a new class named FindPathData. This is considered a base class, but it can be used by itself. It has two properties: PopFirstWaypoint and PopLastNWaypoints and a method: PopWaypointTest().
+
+**PopWaypointTest**
+The system iterates backward over the points in the original path and offers the chance to verify that the node should be included. This affords the option to make sure that, while pathable, this is a point to be included in the final path (i.e. making sure that a character stays far enough away from a trap without setting it off when they have clicked on the trap.)
+
+This process is done before any other trimming or popping is done.
+
+As a side note - this is currently our recommended method for pathing to an object/character. Pathfinder.CheckNode would check node bounds against all objects except for the player and their target (if you check the target then you won't get a path as the node is blocked.) Then PopWaypointTest() will check nodes against the target's bounds. This will cause the system to path to the target and then trim the path to the closest node outside of their collision box.
 
 **PopFirstWaypoint**
 
