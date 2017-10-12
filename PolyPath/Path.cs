@@ -43,62 +43,30 @@ using Microsoft.Xna.Framework;
 namespace PolyPath
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class Path
 	{
 		#region Variables
-		private List<Vector2> waypoints = null;
+		private List<Vector2> _waypoints;
 		#endregion
 
 		#region Properties
 		public Vector2[] Waypoints
 		{
-			get
-			{
-				return waypoints.ToArray();
-			}
-			set
-			{
-				waypoints = new List<Vector2>(value == null ? new Vector2[0] : value);
-			}
+			get => _waypoints.ToArray();
+			set => _waypoints = new List<Vector2>(value ?? new Vector2[0]);
 		}
 
-		public Vector2? NextWaypoint
-		{
-			get
-			{
-				return waypoints.Count == 0 ? (Vector2?)null : waypoints.First();
-			}
-		}
-
-		public Vector2? LastWaypoint
-		{
-			get
-			{
-				return waypoints.Count == 0 ? (Vector2?)null : waypoints.Last();
-			}
-		}
-
-		public int Length
-		{
-			get
-			{
-				return waypoints.Count;
-			}
-		}
-
-		public int Depth
-		{
-			get;
-			set;
-		}
+		public Vector2? NextWaypoint => _waypoints.Count == 0 ? (Vector2?) null : _waypoints.First();
+		public Vector2? LastWaypoint => _waypoints.Count == 0 ? (Vector2?) null : _waypoints.Last();
+		public int Length => _waypoints.Count;
+		public int Depth { get; set; }
 		#endregion
 
 		#region Constructors
 		public Path()
 		{
-			waypoints = new List<Vector2>();
+			_waypoints = new List<Vector2>();
 		}
 		#endregion
 
@@ -120,37 +88,37 @@ namespace PolyPath
 
 		public void AddWaypoint(Vector2 waypoint)
 		{
-			waypoints.Add(waypoint);
+			_waypoints.Add(waypoint);
 		}
 
 		public void AddWaypoints(IEnumerable<Vector2> newWaypoints)
 		{
-			waypoints.AddRange(newWaypoints);
+			_waypoints.AddRange(newWaypoints);
 		}
 
 		public Vector2 PopWaypoint()
 		{
-			if(waypoints == null || waypoints.Count == 0)
+			if (_waypoints == null || _waypoints.Count == 0)
 				return Vector2.Zero;
-			var output = waypoints.First();
-			waypoints.RemoveAt(0);
+			var output = _waypoints.First();
+			_waypoints.RemoveAt(0);
 			return output;
 		}
 
 		public void Clear()
 		{
-			waypoints.Clear();
+			_waypoints.Clear();
 		}
 
 		public void DebugDraw(Action<Point, Point, int> drawLine)
 		{
-			if(drawLine == null)
+			if (drawLine == null)
 				return;
 
-			for(var index = 0; index < waypoints.Count - 1; ++index)
+			for (var index = 0; index < _waypoints.Count - 1; ++index)
 			{
-				var current = waypoints[index];
-				var next = waypoints[index + 1];
+				var current = _waypoints[index];
+				var next = _waypoints[index + 1];
 				drawLine(current.ToPoint(), next.ToPoint(), index);
 			}
 		}

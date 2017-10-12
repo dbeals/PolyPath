@@ -41,44 +41,19 @@ using Microsoft.Xna.Framework.Input;
 namespace ExampleGame.Input
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class MouseButtonEventArgs : EventArgs
 	{
 		#region Properties
-		public MouseButtons Button
-		{
-			get;
-			private set;
-		}
+		public MouseButtons Button { get; private set; }
 
-		public ButtonState EventType
-		{
-			get;
-			private set;
-		}
+		public ButtonState EventType { get; private set; }
 
-		public Point Position
-		{
-			get;
-			private set;
-		}
+		public Point Position { get; private set; }
 
-		public int X
-		{
-			get
-			{
-				return Position.X;
-			}
-		}
+		public int X => Position.X;
 
-		public int Y
-		{
-			get
-			{
-				return Position.Y;
-			}
-		}
+		public int Y => Position.Y;
 		#endregion
 
 		#region Constructors

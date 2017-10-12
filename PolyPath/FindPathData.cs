@@ -17,28 +17,13 @@ using Microsoft.Xna.Framework;
 namespace PolyPath
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public class FindPathData
 	{
 		#region Properties
-		public bool PopFirstWaypoint
-		{
-			get;
-			set;
-		}
+		public bool PopFirstWaypoint { get; set; }
 
-		public int PopLastNWaypoints
-		{
-			get;
-			set;
-		}
-		#endregion
-
-		#region Constructors
-		public FindPathData()
-		{
-		}
+		public int PopLastNWaypoints { get; set; }
 		#endregion
 
 		#region Methods

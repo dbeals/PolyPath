@@ -43,65 +43,30 @@ using Microsoft.Xna.Framework;
 namespace PolyPath
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class PathingPolygon
 	{
-		#region Variables
-		#endregion
-
 		#region Properties
-		public List<Point> Points
-		{
-			get;
-			private set;
-		}
+		public List<Point> Points { get; private set; }
 
-		public PathingGridNode[] Nodes
-		{
-			get;
-			private set;
-		}
+		public PathingGridNode[] Nodes { get; private set; }
 
-		public int NodeWidth
-		{
-			get;
-			private set;
-		}
+		public int NodeWidth { get; private set; }
 
-		public int NodeHeight
-		{
-			get;
-			private set;
-		}
+		public int NodeHeight { get; private set; }
 
-		public int Width
-		{
-			get;
-			private set;
-		}
+		public int Width { get; private set; }
 
-		public int Height
-		{
-			get;
-			private set;
-		}
+		public int Height { get; private set; }
 
-		public bool IsClosed
-		{
-			get;
-			private set;
-		}
+		public bool IsClosed { get; private set; }
 
 		/// <summary>
-		/// When true, all 4 corners of a node will be used when determing if the node is inside of the polygon.
-		/// When false, it will test the top left and bottom right, then the top right and bottom left. If either set is inside, it considers the node inside the polygon.
+		///     When true, all 4 corners of a node will be used when determining if the node is inside of the polygon.
+		///     When false, it will test the top left and bottom right, then the top right and bottom left. If either set is
+		///     inside, it considers the node inside the polygon.
 		/// </summary>
-		public bool UseTightTests
-		{
-			get;
-			set;
-		}
+		public bool UseTightTests { get; set; }
 		#endregion
 
 		#region Constructors
@@ -113,41 +78,9 @@ namespace PolyPath
 		#endregion
 
 		#region Methods
-		private static bool IsPointInsidePolygon(Point[] points, int testX, int testY)
-		{
-			var counter = 0;
-			var point1 = points[0];
-			for(var index = 1; index <= points.Length; ++index)
-			{
-				var point2 = points[index % points.Length];
-				if(testY > Math.Min(point1.Y, point2.Y) &&
-					testY <= Math.Max(point1.Y, point2.Y) &&
-					testX <= Math.Max(point1.X, point2.X) &&
-					point1.Y != point2.Y)
-				{
-					var xinters = (testY - point1.Y) * (point2.X - point1.X) / (point2.Y - point1.Y) + point1.X;
-					if(point1.X == point2.X || testX <= xinters)
-						++counter;
-				}
-				point1 = point2;
-			}
-
-			return counter % 2 != 0;
-		}
-
-		private static bool IsRectangleInsidePolygon(Point[] points, Rectangle node, bool tightTest)
-		{
-			var leftTopRightBottom = (IsPointInsidePolygon(points, node.Left, node.Top) && IsPointInsidePolygon(points, node.Right, node.Bottom));
-			var rightTopLeftBottom = (IsPointInsidePolygon(points, node.Right, node.Top) && IsPointInsidePolygon(points, node.Left, node.Bottom));
-
-			if(tightTest)
-				return leftTopRightBottom && rightTopLeftBottom;
-			return leftTopRightBottom || leftTopRightBottom;
-		}
-
 		public void Close()
 		{
-			if(Points.Last() != Points.First())
+			if (Points.Last() != Points.First())
 				Points.Add(Points.First());
 			IsClosed = true;
 		}
@@ -170,43 +103,39 @@ namespace PolyPath
 			var maxX = int.MinValue;
 			var maxY = int.MinValue;
 
-			foreach(var point in Points)
+			foreach (var point in Points)
 			{
-				if(point.X < minX)
+				if (point.X < minX)
 					minX = point.X;
-				if(point.Y < minY)
+				if (point.Y < minY)
 					minY = point.Y;
 
-				if(point.X > maxX)
+				if (point.X > maxX)
 					maxX = point.X;
-				if(point.Y > maxY)
+				if (point.Y > maxY)
 					maxY = point.Y;
 			}
 
 			var bounds = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-			Width = (int)Math.Ceiling((double)bounds.Width / nodeWidth);
-			Height = (int)Math.Ceiling((double)bounds.Height / nodeHeight);
+			Width = (int) Math.Ceiling((double) bounds.Width / nodeWidth);
+			Height = (int) Math.Ceiling((double) bounds.Height / nodeHeight);
 			var output = new PathingGridNode[Width * Height];
 
 			var polygonPoints = Points.ToArray();
-			for(var row = 0; row < Height; ++row)
+			for (var row = 0; row < Height; ++row)
+			for (var column = 0; column < Width; ++column)
 			{
-				for(var column = 0; column < Width; ++column)
-				{
-					var nodeBounds = new Rectangle(bounds.X + (column * nodeWidth), bounds.Y + (row * nodeHeight), nodeWidth, nodeHeight);
-					output[(row * Width) + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
-				}
+				var nodeBounds = new Rectangle(bounds.X + (column * nodeWidth), bounds.Y + (row * nodeHeight), nodeWidth, nodeHeight);
+				output[(row * Width) + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
 			}
 			Nodes = output;
 		}
 
 		public PathingGridNode GetNodeAtXY(int x, int y)
 		{
-			foreach(var node in Nodes)
-			{
-				if(node.Bounds.Contains(x, y))
+			foreach (var node in Nodes)
+				if (node.Bounds.Contains(x, y))
 					return node;
-			}
 			return new PathingGridNode(-1, -1, Rectangle.Empty, false);
 		}
 
@@ -232,26 +161,58 @@ namespace PolyPath
 
 		public void DebugDraw(Action<Point, Point, int> drawLine, Action<PathingGridNode> drawNode)
 		{
-			if(drawNode != null && IsClosed)
+			if (drawNode != null && IsClosed)
 			{
-				foreach(var node in Nodes)
+				foreach (var node in Nodes)
 				{
-					if(!node.IsPathable)
+					if (!node.IsPathable)
 						continue;
 
 					drawNode(node);
 				}
 			}
 
-			if(drawLine != null && Points.Count > 1)
+			if (drawLine != null && Points.Count > 1)
 			{
-				for(var index = 0; index < Points.Count - 1; ++index)
+				for (var index = 0; index < Points.Count - 1; ++index)
 				{
 					var start = Points[index];
 					var end = Points[index + 1];
 					drawLine(start, end, index);
 				}
 			}
+		}
+
+		private static bool IsPointInsidePolygon(Point[] points, int testX, int testY)
+		{
+			var counter = 0;
+			var point1 = points[0];
+			for (var index = 1; index <= points.Length; ++index)
+			{
+				var point2 = points[index % points.Length];
+				if (testY > Math.Min(point1.Y, point2.Y) &&
+					testY <= Math.Max(point1.Y, point2.Y) &&
+					testX <= Math.Max(point1.X, point2.X) &&
+					point1.Y != point2.Y)
+				{
+					var xinters = (testY - point1.Y) * (point2.X - point1.X) / (point2.Y - point1.Y) + point1.X;
+					if (point1.X == point2.X || testX <= xinters)
+						++counter;
+				}
+				point1 = point2;
+			}
+
+			return counter % 2 != 0;
+		}
+
+		private static bool IsRectangleInsidePolygon(Point[] points, Rectangle node, bool tightTest)
+		{
+			var leftTopRightBottom = (IsPointInsidePolygon(points, node.Left, node.Top) && IsPointInsidePolygon(points, node.Right, node.Bottom));
+			var rightTopLeftBottom = (IsPointInsidePolygon(points, node.Right, node.Top) && IsPointInsidePolygon(points, node.Left, node.Bottom));
+
+			if (tightTest)
+				return leftTopRightBottom && rightTopLeftBottom;
+			return leftTopRightBottom;
 		}
 		#endregion
 	}

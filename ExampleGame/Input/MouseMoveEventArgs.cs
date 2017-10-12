@@ -40,54 +40,21 @@ using Microsoft.Xna.Framework;
 namespace ExampleGame.Input
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class MouseMoveEventArgs : EventArgs
 	{
 		#region Properties
-		public Point Position
-		{
-			get;
-			private set;
-		}
+		public Point Position { get; private set; }
 
-		public Point Offset
-		{
-			get;
-			private set;
-		}
+		public Point Offset { get; private set; }
 
-		public int X
-		{
-			get
-			{
-				return Position.X;
-			}
-		}
+		public int X => Position.X;
 
-		public int Y
-		{
-			get
-			{
-				return Position.Y;
-			}
-		}
+		public int Y => Position.Y;
 
-		public int OffsetX
-		{
-			get
-			{
-				return Offset.X;
-			}
-		}
+		public int OffsetX => Offset.X;
 
-		public int OffsetY
-		{
-			get
-			{
-				return Offset.Y;
-			}
-		}
+		public int OffsetY => Offset.Y;
 		#endregion
 
 		#region Constructors

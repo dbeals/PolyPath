@@ -40,39 +40,26 @@ using Microsoft.Xna.Framework.Input;
 namespace ExampleGame.Input
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class InputManager
 	{
+		#region Events
+		public event EventHandler<MouseButtonEventArgs> MouseButtonStateChanged = delegate { };
+
+		public event EventHandler<MouseMoveEventArgs> MouseMoved = delegate { };
+
+		public event EventHandler<KeyEventArgs> KeyStateChanged = delegate { };
+		#endregion
+
 		#region Variables
-		private MouseState previousMouseState;
-		private KeyboardState previousKeyboardState;
-
-		public event EventHandler<MouseButtonEventArgs> MouseButtonStateChanged = delegate
-		{
-		};
-
-		public event EventHandler<MouseMoveEventArgs> MouseMoved = delegate
-		{
-		};
-
-		public event EventHandler<KeyEventArgs> KeyStateChanged = delegate
-		{
-		};
+		private MouseState _previousMouseState;
+		private KeyboardState _previousKeyboardState;
 		#endregion
 
 		#region Properties
-		public MouseState MouseState
-		{
-			get;
-			private set;
-		}
+		public MouseState MouseState { get; private set; }
 
-		public KeyboardState KeyboardState
-		{
-			get;
-			private set;
-		}
+		public KeyboardState KeyboardState { get; private set; }
 		#endregion
 
 		#region Constructors
@@ -85,53 +72,53 @@ namespace ExampleGame.Input
 		#region Methods
 		public void Synchronize()
 		{
-			previousKeyboardState = Keyboard.GetState();
-			previousMouseState = Mouse.GetState();
+			_previousKeyboardState = Keyboard.GetState();
+			_previousMouseState = Mouse.GetState();
 		}
 
 		public void Update()
 		{
 			MouseState = Mouse.GetState();
-			if(MouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
+			if (MouseState.LeftButton == ButtonState.Pressed && _previousMouseState.LeftButton == ButtonState.Released)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.Left, ButtonState.Pressed, MouseState.Position));
-			else if(MouseState.LeftButton == ButtonState.Released && previousMouseState.LeftButton == ButtonState.Pressed)
+			else if (MouseState.LeftButton == ButtonState.Released && _previousMouseState.LeftButton == ButtonState.Pressed)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.Left, ButtonState.Released, MouseState.Position));
 
-			if(MouseState.MiddleButton == ButtonState.Pressed && previousMouseState.MiddleButton == ButtonState.Released)
+			if (MouseState.MiddleButton == ButtonState.Pressed && _previousMouseState.MiddleButton == ButtonState.Released)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.Middle, ButtonState.Pressed, MouseState.Position));
-			else if(MouseState.MiddleButton == ButtonState.Released && previousMouseState.MiddleButton == ButtonState.Pressed)
+			else if (MouseState.MiddleButton == ButtonState.Released && _previousMouseState.MiddleButton == ButtonState.Pressed)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.Middle, ButtonState.Released, MouseState.Position));
 
-			if(MouseState.RightButton == ButtonState.Pressed && previousMouseState.RightButton == ButtonState.Released)
+			if (MouseState.RightButton == ButtonState.Pressed && _previousMouseState.RightButton == ButtonState.Released)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.Right, ButtonState.Pressed, MouseState.Position));
-			else if(MouseState.RightButton == ButtonState.Released && previousMouseState.RightButton == ButtonState.Pressed)
+			else if (MouseState.RightButton == ButtonState.Released && _previousMouseState.RightButton == ButtonState.Pressed)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.Right, ButtonState.Released, MouseState.Position));
 
-			if(MouseState.XButton1 == ButtonState.Pressed && previousMouseState.XButton1 == ButtonState.Released)
+			if (MouseState.XButton1 == ButtonState.Pressed && _previousMouseState.XButton1 == ButtonState.Released)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.X1, ButtonState.Pressed, MouseState.Position));
-			else if(MouseState.XButton1 == ButtonState.Released && previousMouseState.XButton1 == ButtonState.Pressed)
+			else if (MouseState.XButton1 == ButtonState.Released && _previousMouseState.XButton1 == ButtonState.Pressed)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.X1, ButtonState.Released, MouseState.Position));
 
-			if(MouseState.XButton2 == ButtonState.Pressed && previousMouseState.XButton2 == ButtonState.Released)
+			if (MouseState.XButton2 == ButtonState.Pressed && _previousMouseState.XButton2 == ButtonState.Released)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.X2, ButtonState.Pressed, MouseState.Position));
-			else if(MouseState.XButton2 == ButtonState.Released && previousMouseState.XButton2 == ButtonState.Pressed)
+			else if (MouseState.XButton2 == ButtonState.Released && _previousMouseState.XButton2 == ButtonState.Pressed)
 				MouseButtonStateChanged(this, new MouseButtonEventArgs(MouseButtons.X2, ButtonState.Released, MouseState.Position));
 
-			if(MouseState.Position != previousMouseState.Position)
-				MouseMoved(this, new MouseMoveEventArgs(MouseState.Position, MouseState.Position - previousMouseState.Position));
+			if (MouseState.Position != _previousMouseState.Position)
+				MouseMoved(this, new MouseMoveEventArgs(MouseState.Position, MouseState.Position - _previousMouseState.Position));
 
 			KeyboardState = Keyboard.GetState();
-			for(var index = 0; index < 256; ++index)
+			for (var index = 0; index < 256; ++index)
 			{
-				var key = (Keys)index;
-				if(KeyboardState[key] == KeyState.Down && previousKeyboardState[key] == KeyState.Up)
+				var key = (Keys) index;
+				if (KeyboardState[key] == KeyState.Down && _previousKeyboardState[key] == KeyState.Up)
 					KeyStateChanged(this, new KeyEventArgs(key, KeyState.Down));
-				else if(KeyboardState[key] == KeyState.Up && previousKeyboardState[key] == KeyState.Down)
+				else if (KeyboardState[key] == KeyState.Up && _previousKeyboardState[key] == KeyState.Down)
 					KeyStateChanged(this, new KeyEventArgs(key, KeyState.Up));
 			}
 
-			previousKeyboardState = KeyboardState;
-			previousMouseState = MouseState;
+			_previousKeyboardState = KeyboardState;
+			_previousMouseState = MouseState;
 		}
 		#endregion
 	}

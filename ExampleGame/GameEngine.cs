@@ -1,67 +1,183 @@
-﻿using System;
+﻿using System.IO;
 using ExampleGame.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PolyPath;
+using Path = PolyPath.Path;
 
 namespace ExampleGame
 {
 	/// <summary>
-	/// This is the main type for your game
+	///     This is the main type for your game
 	/// </summary>
 	public class GameEngine : Game
 	{
 		#region Variables
-		private bool showHelp = true;
-
-		// Graphics
-		private GraphicsDeviceManager graphics;
-		private SpriteBatch spriteBatch;
-		private Renderer renderer;
-		private SpriteFont uiFont;
-		private Texture2D background;
-
 		// Input
-		private InputManager inputManager = new InputManager();
+		private readonly InputManager _inputManager = new InputManager();
 
 		// Pathing
-		private Pathfinder pathfinder = new Pathfinder();
-		private PathingPolygon pathingPolygon = new PathingPolygon();
-		private PathingGridNode? startNode;
-		private PathingGridNode? endNode;
-		private Path path;
-		private int selectPointIndex = -1;
+		private readonly Pathfinder _pathfinder = new Pathfinder();
+		private readonly PathingPolygon _pathingPolygon = new PathingPolygon();
+
+		private bool _showHelp = true;
+
+		// Graphics
+		private GraphicsDeviceManager _graphics;
+
+		private SpriteBatch _spriteBatch;
+		private Renderer _renderer;
+		private SpriteFont _uiFont;
+		private Texture2D _background;
+		private PathingGridNode? _startNode;
+		private PathingGridNode? _endNode;
+		private Path _path;
+		private int _selectPointIndex = -1;
 		#endregion
 
 		#region Constructors
 		public GameEngine()
-			: base()
 		{
-			graphics = new GraphicsDeviceManager(this);
+			_graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
 
-			inputManager.KeyStateChanged += inputManager_KeyStateChanged;
-			inputManager.MouseButtonStateChanged += inputManager_MouseButtonStateChanged;
-			inputManager.MouseMoved += inputManager_MouseMoved;
+			_inputManager.KeyStateChanged += inputManager_KeyStateChanged;
+			_inputManager.MouseButtonStateChanged += inputManager_MouseButtonStateChanged;
+			_inputManager.MouseMoved += inputManager_MouseMoved;
 
-			pathfinder.CheckNode = (column, row, userData) =>
-			{
-				if(!pathingPolygon.ContainsColumnRow(column, row))
-					return false;
-
-				return pathingPolygon.Nodes[(row * pathingPolygon.Width) + column].IsPathable;
-			};
+			_pathfinder.CheckNode = (column, row, userData) => _pathingPolygon.ContainsColumnRow(column, row) && _pathingPolygon.Nodes[(row * _pathingPolygon.Width) + column].IsPathable;
 		}
 		#endregion
 
 		#region Methods
-		void inputManager_KeyStateChanged(object sender, KeyEventArgs e)
+		/// <summary>
+		///     Allows the game to perform any initialization it needs to before starting to run.
+		///     This is where it can query for any required services and load any non-graphic
+		///     related content.  Calling base.Initialize will enumerate through any components
+		///     and initialize them as well.
+		/// </summary>
+		protected override void Initialize()
 		{
-			if(e.EventType == KeyState.Down)
+			IsMouseVisible = true;
+
+			base.Initialize();
+		}
+
+		/// <summary>
+		///     LoadContent will be called once per game and is the place to load
+		///     all of your content.
+		/// </summary>
+		protected override void LoadContent()
+		{
+			_spriteBatch = new SpriteBatch(GraphicsDevice);
+			_renderer = new Renderer(_spriteBatch);
+			_renderer.LoadContent();
+			_uiFont = Content.Load<SpriteFont>("UIFont");
+
+			if (File.Exists("Content/background.png"))
+			{
+				using (var stream = File.OpenRead("Content/background.png"))
+				{
+					_background = Texture2D.FromStream(GraphicsDevice, stream);
+				}
+			}
+		}
+
+		/// <summary>
+		///     UnloadContent will be called once per game and is the place to unload
+		///     all content.
+		/// </summary>
+		protected override void UnloadContent()
+		{
+			_background?.Dispose();
+			_background = null;
+			_renderer.UnloadContent();
+		}
+
+		/// <summary>
+		///     Allows the game to run logic such as updating the world,
+		///     checking for collisions, gathering input, and playing audio.
+		/// </summary>
+		/// <param name="gameTime">Provides a snapshot of timing values.</param>
+		protected override void Update(GameTime gameTime)
+		{
+			_inputManager.Update();
+			base.Update(gameTime);
+		}
+
+		/// <summary>
+		///     This is called when the game should draw itself.
+		/// </summary>
+		/// <param name="gameTime">Provides a snapshot of timing values.</param>
+		protected override void Draw(GameTime gameTime)
+		{
+			GraphicsDevice.Clear(Color.Black);
+
+			_spriteBatch.Begin();
+			if (_background != null)
+				_spriteBatch.Draw(_background, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+
+			var boxColor = Color.Maroon;
+			var lineColor = Color.Red;
+
+			void DrawLine(Point start, Point end, int index)
+			{
+				var boxSize = 8;
+				var boxOffset = boxSize / 2;
+
+				if (index == 0)
+					_renderer.FillRectangle(new Rectangle(start.X - boxOffset, start.Y - boxOffset, boxSize, boxSize), boxColor);
+				_renderer.FillRectangle(new Rectangle(end.X - boxOffset, end.Y - boxOffset, boxSize, boxSize), boxColor);
+				_renderer.DrawLine(start.X, start.Y, end.X, end.Y, lineColor);
+			}
+
+			void DrawNode(PathingGridNode node)
+			{
+				_renderer.DrawRectangle(node.Bounds, Color.White);
+			}
+
+			_pathingPolygon.DebugDraw(DrawLine, DrawNode);
+
+			if (_pathingPolygon.IsClosed)
+			{
+				if (_startNode != null)
+					_renderer.FillRectangle(_startNode.Value.Bounds, Color.Green);
+				if (_endNode != null)
+					_renderer.FillRectangle(_endNode.Value.Bounds, Color.Red);
+			}
+
+			if (_path != null)
+			{
+				boxColor = Color.Yellow;
+				lineColor = Color.Green;
+				_path.DebugDraw(DrawLine);
+			}
+
+			if (_showHelp)
+			{
+				string text;
+				if (!_pathingPolygon.IsClosed)
+					text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click: Add polygon points\nRight Click: Clear Polygon\nClick on the first point to close polygon";
+				else if (_startNode == null)
+					text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set start point\nRight Click: Clear polygon";
+				else
+					text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set end point\nRight Click: Clear start node";
+
+				text = string.Format(text, _pathfinder.TrimPaths ? "Disable" : "Enable", _pathingPolygon.UseTightTests ? "Disable" : "Enable");
+
+				_spriteBatch.DrawString(_uiFont, text, new Vector2(0, 0), Color.White);
+			}
+			_spriteBatch.End();
+			base.Draw(gameTime);
+		}
+
+		private void inputManager_KeyStateChanged(object sender, KeyEventArgs e)
+		{
+			if (e.EventType == KeyState.Down)
 				return;
 
-			switch(e.Key)
+			switch (e.Key)
 			{
 				case Keys.Escape:
 				{
@@ -71,35 +187,35 @@ namespace ExampleGame
 
 				case Keys.Space:
 				{
-					pathfinder.TrimPaths = !pathfinder.TrimPaths;
-					if(pathingPolygon.IsClosed && startNode != null && endNode != null)
-						path = pathfinder.FindPath(startNode.Value.Column, startNode.Value.Row, endNode.Value.Column, endNode.Value.Row, pathingPolygon);
+					_pathfinder.TrimPaths = !_pathfinder.TrimPaths;
+					if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
+						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
 					break;
 				}
 
 				case Keys.Tab:
 				{
-					pathingPolygon.UseTightTests = !pathingPolygon.UseTightTests;
-					if(pathingPolygon.Points.Count > 1)
+					_pathingPolygon.UseTightTests = !_pathingPolygon.UseTightTests;
+					if (_pathingPolygon.Points.Count > 1)
 					{
-						pathingPolygon.Close();
-						pathingPolygon.CreateGrid(16, 16);
+						_pathingPolygon.Close();
+						_pathingPolygon.CreateGrid(16, 16);
 					}
-					if(pathingPolygon.IsClosed && startNode != null && endNode != null)
-						path = pathfinder.FindPath(startNode.Value.Column, startNode.Value.Row, endNode.Value.Column, endNode.Value.Row, pathingPolygon);
+					if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
+						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
 					break;
 				}
 
 				case Keys.S:
 				{
-					if(pathingPolygon.Points.Count > 1)
+					if (_pathingPolygon.Points.Count > 1)
 					{
-						using(var stream = System.IO.File.Create("polygon.txt"))
+						using (var stream = File.Create("polygon.txt"))
 						{
-							using(var writer = new System.IO.BinaryWriter(stream))
+							using (var writer = new BinaryWriter(stream))
 							{
-								writer.Write(pathingPolygon.Points.Count);
-								foreach(var point in pathingPolygon.Points)
+								writer.Write(_pathingPolygon.Points.Count);
+								foreach (var point in _pathingPolygon.Points)
 								{
 									writer.Write(point.X);
 									writer.Write(point.Y);
@@ -112,22 +228,22 @@ namespace ExampleGame
 
 				case Keys.L:
 				{
-					if(System.IO.File.Exists("polygon.txt"))
+					if (File.Exists("polygon.txt"))
 					{
-						using(var stream = System.IO.File.OpenRead("polygon.txt"))
+						using (var stream = File.OpenRead("polygon.txt"))
 						{
-							using(var reader = new System.IO.BinaryReader(stream))
+							using (var reader = new BinaryReader(stream))
 							{
-								startNode = null;
-								endNode = null;
-								pathingPolygon.Clear();
-								path = null;
+								_startNode = null;
+								_endNode = null;
+								_pathingPolygon.Clear();
+								_path = null;
 
 								var count = reader.ReadInt32();
-								for(var index = 0; index < count; ++index)
-									pathingPolygon.Points.Add(new Point(reader.ReadInt32(), reader.ReadInt32()));
-								pathingPolygon.Close();
-								pathingPolygon.CreateGrid(16, 16);
+								for (var index = 0; index < count; ++index)
+									_pathingPolygon.Points.Add(new Point(reader.ReadInt32(), reader.ReadInt32()));
+								_pathingPolygon.Close();
+								_pathingPolygon.CreateGrid(16, 16);
 							}
 						}
 					}
@@ -136,254 +252,128 @@ namespace ExampleGame
 
 				case Keys.F1:
 				{
-					showHelp = !showHelp;
+					_showHelp = !_showHelp;
 					break;
 				}
 			}
 		}
 
-		void inputManager_MouseButtonStateChanged(object sender, MouseButtonEventArgs e)
+		private void inputManager_MouseButtonStateChanged(object sender, MouseButtonEventArgs e)
 		{
-			if(pathingPolygon.IsClosed && e.Button == MouseButtons.Right && e.EventType == ButtonState.Released)
+			if (_pathingPolygon.IsClosed && e.Button == MouseButtons.Right && e.EventType == ButtonState.Released)
 			{
 				var boxSize = 8;
 				var boxOffset = boxSize / 2;
 				var removedPoint = false;
-				for(var index = 0; index < pathingPolygon.Points.Count; ++index)
+				for (var index = 0; index < _pathingPolygon.Points.Count; ++index)
 				{
-					var point = pathingPolygon.Points[index];
+					var point = _pathingPolygon.Points[index];
 					var bounds = new Rectangle(point.X - boxOffset, point.Y - boxOffset, boxSize, boxSize);
-					if(bounds.Contains(e.Position))
+					if (bounds.Contains(e.Position))
 					{
-						pathingPolygon.Points.RemoveAt(index);
+						_pathingPolygon.Points.RemoveAt(index);
 						removedPoint = true;
 						break;
 					}
 				}
 
-				if(!removedPoint)
+				if (!removedPoint)
 				{
-					if(startNode != null)
+					if (_startNode != null)
 					{
-						startNode = null;
-						endNode = null;
-						path = null;
+						_startNode = null;
+						_endNode = null;
+						_path = null;
 					}
 					else
 					{
-						pathingPolygon.Clear();
-						path = null;
+						_pathingPolygon.Clear();
+						_path = null;
 					}
 				}
 			}
-			else if(e.Button == MouseButtons.Left && e.EventType == ButtonState.Pressed)
+			else if (e.Button == MouseButtons.Left && e.EventType == ButtonState.Pressed)
 			{
 				var boxSize = 8;
 				var boxOffset = boxSize / 2;
-				selectPointIndex = -1;
-				for(var index = 0; index < pathingPolygon.Points.Count; ++index)
+				_selectPointIndex = -1;
+				for (var index = 0; index < _pathingPolygon.Points.Count; ++index)
 				{
-					var point = pathingPolygon.Points[index];
+					var point = _pathingPolygon.Points[index];
 					var bounds = new Rectangle(point.X - boxOffset, point.Y - boxOffset, boxSize, boxSize);
-					if(bounds.Contains(e.Position))
+					if (bounds.Contains(e.Position))
 					{
-						selectPointIndex = index;
-						if(path != null)
-							path.Clear();
-						startNode = null;
-						endNode = null;
+						_selectPointIndex = index;
+						_path?.Clear();
+						_startNode = null;
+						_endNode = null;
 						break;
 					}
 				}
 			}
-			else if(e.Button == MouseButtons.Left && e.EventType == ButtonState.Released)
+			else if (e.Button == MouseButtons.Left && e.EventType == ButtonState.Released)
 			{
-				if(selectPointIndex != -1)
+				if (_selectPointIndex != -1)
 				{
-					if(selectPointIndex == 0)
-						pathingPolygon.Close();
+					if (_selectPointIndex == 0)
+						_pathingPolygon.Close();
 
-					selectPointIndex = -1;
-					if(pathingPolygon.IsClosed)
-						pathingPolygon.CreateGrid(16, 16);
+					_selectPointIndex = -1;
+					if (_pathingPolygon.IsClosed)
+						_pathingPolygon.CreateGrid(16, 16);
 				}
-				else if(!pathingPolygon.IsClosed)
+				else if (!_pathingPolygon.IsClosed)
 				{
-					if(pathingPolygon.Points.Count > 1 && new Rectangle(pathingPolygon.Points[0].X - 5, pathingPolygon.Points[0].Y - 5, 10, 10).Contains(e.Position))
+					if (_pathingPolygon.Points.Count > 1 && new Rectangle(_pathingPolygon.Points[0].X - 5, _pathingPolygon.Points[0].Y - 5, 10, 10).Contains(e.Position))
 					{
-						pathingPolygon.Close();
-						pathingPolygon.CreateGrid(16, 16);
+						_pathingPolygon.Close();
+						_pathingPolygon.CreateGrid(16, 16);
 					}
 					else
-						pathingPolygon.Points.Add(e.Position);
+						_pathingPolygon.Points.Add(e.Position);
 				}
 				else
 				{
-					var node = pathingPolygon.GetNodeAtXY(e.Position);
-					if(node.IsPathable)
+					var node = _pathingPolygon.GetNodeAtXY(e.Position);
+					if (node.IsPathable)
 					{
-						if(startNode == null)
-							startNode = node;
+						if (_startNode == null)
+							_startNode = node;
 						else
 						{
-							endNode = node;
-							path = pathfinder.FindPath(startNode.Value.Column, startNode.Value.Row, endNode.Value.Column, endNode.Value.Row, pathingPolygon);
+							_endNode = node;
+							_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
 						}
 					}
 				}
 			}
 		}
 
-		void inputManager_MouseMoved(object sender, MouseMoveEventArgs e)
+		private void inputManager_MouseMoved(object sender, MouseMoveEventArgs e)
 		{
-			if(inputManager.MouseState.LeftButton == ButtonState.Pressed)
+			if (_inputManager.MouseState.LeftButton == ButtonState.Pressed)
 			{
-				if(pathingPolygon.IsClosed && startNode != null && selectPointIndex == -1)
+				if (_pathingPolygon.IsClosed && _startNode != null && _selectPointIndex == -1)
 				{
-					var node = pathingPolygon.GetNodeAtXY(e.Position);
-					if(node.IsPathable)
+					var node = _pathingPolygon.GetNodeAtXY(e.Position);
+					if (node.IsPathable)
 					{
-						endNode = node;
-						path = pathfinder.FindPath(startNode.Value.Column, startNode.Value.Row, endNode.Value.Column, endNode.Value.Row, pathingPolygon);
+						_endNode = node;
+						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
 					}
 				}
-				else if(selectPointIndex != -1)
+				else if (_selectPointIndex != -1)
 				{
 					var offset = e.Offset;
-					if(inputManager.KeyboardState.IsKeyDown(Keys.X))
+					if (_inputManager.KeyboardState.IsKeyDown(Keys.X))
 						offset.Y = 0;
-					else if(inputManager.KeyboardState.IsKeyDown(Keys.Y))
+					else if (_inputManager.KeyboardState.IsKeyDown(Keys.Y))
 						offset.X = 0;
-					pathingPolygon.Points[selectPointIndex] += offset;
-					if(selectPointIndex == 0 && pathingPolygon.IsClosed)
-						pathingPolygon.Points[pathingPolygon.Points.Count - 1] += offset;
+					_pathingPolygon.Points[_selectPointIndex] += offset;
+					if (_selectPointIndex == 0 && _pathingPolygon.IsClosed)
+						_pathingPolygon.Points[_pathingPolygon.Points.Count - 1] += offset;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Allows the game to perform any initialization it needs to before starting to run.
-		/// This is where it can query for any required services and load any non-graphic
-		/// related content.  Calling base.Initialize will enumerate through any components
-		/// and initialize them as well.
-		/// </summary>
-		protected override void Initialize()
-		{
-			this.IsMouseVisible = true;
-
-			base.Initialize();
-		}
-
-		/// <summary>
-		/// LoadContent will be called once per game and is the place to load
-		/// all of your content.
-		/// </summary>
-		protected override void LoadContent()
-		{
-			spriteBatch = new SpriteBatch(GraphicsDevice);
-			renderer = new Renderer(spriteBatch);
-			renderer.LoadContent();
-			uiFont = Content.Load<SpriteFont>("UIFont");
-
-			if(System.IO.File.Exists("Content/background.png"))
-			{
-				using(var stream = System.IO.File.OpenRead("Content/background.png"))
-				{
-					background = Texture2D.FromStream(GraphicsDevice, stream);
-				}
-			}
-		}
-
-		/// <summary>
-		/// UnloadContent will be called once per game and is the place to unload
-		/// all content.
-		/// </summary>
-		protected override void UnloadContent()
-		{
-			if(background != null)
-				background.Dispose();
-			background = null;
-			renderer.UnloadContent();
-		}
-
-		/// <summary>
-		/// Allows the game to run logic such as updating the world,
-		/// checking for collisions, gathering input, and playing audio.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Update(GameTime gameTime)
-		{
-			inputManager.Update();
-			base.Update(gameTime);
-		}
-
-		/// <summary>
-		/// This is called when the game should draw itself.
-		/// </summary>
-		/// <param name="gameTime">Provides a snapshot of timing values.</param>
-		protected override void Draw(GameTime gameTime)
-		{
-			var polygonPoints = pathingPolygon.Points.ToArray();
-			GraphicsDevice.Clear(Color.Black);
-
-			spriteBatch.Begin();
-			if(background != null)
-				spriteBatch.Draw(background, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
-
-			Color boxColor = Color.Maroon;
-			Color lineColor = Color.Red;
-			Action<Point, Point, int> drawLine = (start, end, index) =>
-			{
-				var boxSize = 8;
-				var boxOffset = boxSize / 2;
-
-				if(index == 0)
-					renderer.FillRectangle(spriteBatch, new Rectangle(start.X - boxOffset, start.Y - boxOffset, boxSize, boxSize), boxColor);
-				renderer.FillRectangle(spriteBatch, new Rectangle(end.X - boxOffset, end.Y - boxOffset, boxSize, boxSize), boxColor);
-				renderer.DrawLine(spriteBatch, start.X, start.Y, end.X, end.Y, lineColor);
-			};
-
-			Action<PathingGridNode> drawNode = (node) =>
-			{
-				renderer.DrawRectangle(spriteBatch, node.Bounds, Color.White);
-			};
-
-			pathingPolygon.DebugDraw(drawLine, drawNode);
-
-			if(pathingPolygon.IsClosed)
-			{
-				if(startNode != null)
-					renderer.FillRectangle(spriteBatch, startNode.Value.Bounds, Color.Green);
-				if(endNode != null)
-					renderer.FillRectangle(spriteBatch, endNode.Value.Bounds, Color.Red);
-			}
-
-			if(path != null)
-			{
-				boxColor = Color.Yellow;
-				lineColor = Color.Green;
-				path.DebugDraw(drawLine);
-			}
-
-			if(showHelp)
-			{
-				string text = string.Empty;
-				if(!pathingPolygon.IsClosed)
-					text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click: Add polygon points\nRight Click: Clear Polygon\nClick on the first point to close polygon";
-				else if(startNode == null)
-					text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set start point\nRight Click: Clear polygon";
-				else
-					text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set end point\nRight Click: Clear start node";
-
-				text = string.Format(text, pathfinder.TrimPaths ? "Disable" : "Enable", pathingPolygon.UseTightTests ? "Disable" : "Enable");
-
-				var textSize = uiFont.MeasureString(text);
-				var textX = (GraphicsDevice.Viewport.Width - textSize.X) / 2;
-				var textY = GraphicsDevice.Viewport.Height - textSize.Y - 10;
-				spriteBatch.DrawString(uiFont, text, new Vector2(0, 0), Color.White);
-			}
-			spriteBatch.End();
-			base.Draw(gameTime);
 		}
 		#endregion
 	}

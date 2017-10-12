@@ -40,28 +40,15 @@ using Microsoft.Xna.Framework;
 namespace PolyPath
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	internal sealed class PathTreeNode
 	{
 		#region Properties
-		public Point Position
-		{
-			get;
-			set;
-		}
+		public Point Position { get; set; }
 
-		public PathTreeNode Parent
-		{
-			get;
-			set;
-		}
+		public PathTreeNode Parent { get; set; }
 
-		public int Weight
-		{
-			get;
-			set;
-		}
+		public int Weight { get; set; }
 		#endregion
 
 		#region Constructors
@@ -71,9 +58,9 @@ namespace PolyPath
 
 		public PathTreeNode(Point position, PathTreeNode parent, int weight)
 		{
-			this.Position = position;
-			this.Parent = parent;
-			this.Weight = weight;
+			Position = position;
+			Parent = parent;
+			Weight = weight;
 		}
 
 		public PathTreeNode(int column, int row, PathTreeNode parent, int weight)
@@ -85,8 +72,8 @@ namespace PolyPath
 		#region Methods
 		public override string ToString()
 		{
-			return string.Format("X:{0} Y:{1} Weight:{2} Parent:{3}", Position.X, Position.Y, Weight, Parent == null ? "null" : "PathTreeNode");
+			return $"X:{Position.X} Y:{Position.Y} Weight:{Weight} Parent:{(Parent == null ? "null" : "PathTreeNode")}";
 		}
 		#endregion
-	};
+	}
 }

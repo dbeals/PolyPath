@@ -42,155 +42,22 @@ using Microsoft.Xna.Framework;
 namespace PolyPath
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class Pathfinder
 	{
-		#region Variables
-		#endregion
-
 		#region Properties
 		/// <summary>
-		/// When true, the Pathfinder will cut out extra nodes in straight lines.
-		/// For example, when generating a path from 1,1 to 3,1 the Pathfinder will generate a list of waypoints: 1,1 to 2,1 to 3,1.
-		/// With TrimPaths on, it will be simply 1,1 to 3,1.
+		///     When true, the Pathfinder will cut out extra nodes in straight lines.
+		///     For example, when generating a path from 1,1 to 3,1 the Pathfinder will generate a list of waypoints: 1,1 to 2,1 to
+		///     3,1.
+		///     With TrimPaths on, it will be simply 1,1 to 3,1.
 		/// </summary>
-		public bool TrimPaths
-		{
-			get;
-			set;
-		}
+		public bool TrimPaths { get; set; }
 
-		public Func<int, int, FindPathData, bool> CheckNode
-		{
-			get;
-			set;
-		}
-		#endregion
-
-		#region Constructors
-		public Pathfinder()
-		{
-		}
+		public Func<int, int, FindPathData, bool> CheckNode { get; set; }
 		#endregion
 
 		#region Methods
-		private bool ContinuesHorizontally(Point previousPoint, Point currentPoint, Point nextPoint)
-		{
-			return currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
-		}
-
-		private bool ContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint)
-		{
-			return currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
-		}
-
-		private bool ContinuesDiagonallyTest(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset)
-		{
-			return (currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y) &&
-				(currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y);
-		}
-
-		private bool ContinuesDiagonally(Point previousPoint, Point currentPoint, Point nextPoint)
-		{
-			return ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, -1) ||
-				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, 1) ||
-				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, 1) ||
-				ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, -1);
-		}
-
-		private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData = null)
-		{
-			var output = new List<Point>();
-			var parent = node;
-			while(parent != null)
-			{
-				output.Insert(0, parent.Position);
-				parent = parent.Parent;
-			}
-
-			if(userData != null)
-			{
-				var poppingWaypoints = false;
-				for(var index = output.Count - 1; index >= 0; --index)
-				{
-					poppingWaypoints = userData.PopWaypointTest(output[index], index);
-					if(!poppingWaypoints)
-						break;
-
-					output.RemoveAt(index);
-				}
-
-				if(output.Count == 0)
-				{
-					depth = 0;
-					return output.ToArray();
-				}
-
-				if(userData.PopFirstWaypoint)
-					output.RemoveAt(0);
-
-				if(userData.PopLastNWaypoints > 0)
-				{
-					if(userData.PopLastNWaypoints > output.Count)
-					{
-						depth = 0;
-						output.Clear();
-						return output.ToArray();
-					}
-
-					output.RemoveRange(output.Count - userData.PopLastNWaypoints, userData.PopLastNWaypoints);
-				}
-			}
-			depth = output.Count;
-
-			if(TrimPaths)
-			{
-				var indicesToRemove = new List<int>();
-				for(var index = 1; index < output.Count - 1; ++index)
-				{
-					var previousPoint = output[index - 1];
-					var currentPoint = output[index];
-					var nextPoint = output[index + 1];
-
-					if(ContinuesHorizontally(previousPoint, currentPoint, nextPoint) || ContinuesVertically(previousPoint, currentPoint, nextPoint) || ContinuesDiagonally(previousPoint, currentPoint, nextPoint))
-						indicesToRemove.Add(index);
-				}
-
-				for(var index = indicesToRemove.Count - 1; index >= 0; --index)
-					output.RemoveAt(indicesToRemove[index]);
-			}
-			return output.ToArray();
-		}
-
-		private bool CheckNodeList(IEnumerable<PathTreeNode> nodes, Point point)
-		{
-			return CheckNodeList(nodes, point.X, point.Y);
-		}
-
-		private bool CheckNodeList(IEnumerable<PathTreeNode> nodes, int column, int row)
-		{
-			foreach(var node in nodes)
-			{
-				if(node.Position.X == column && node.Position.Y == row)
-					return true;
-			}
-			return false;
-		}
-
-		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, List<PathTreeNode> openNodes, List<PathTreeNode> closedNodes, FindPathData userData)
-		{
-			var newNode = new PathTreeNode(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset, currentNode, 0);
-			if((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y, userData)) &&
-				!CheckNodeList(closedNodes, newNode.Position) &&
-				!CheckNodeList(openNodes, newNode.Position))
-			{
-				openNodes.Add(newNode);
-				return newNode;
-			}
-			return null;
-		}
-
 		public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth, FindPathData userData = null)
 		{
 			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth, userData);
@@ -199,13 +66,12 @@ namespace PolyPath
 		public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData = null)
 		{
 			var closedNodes = new List<PathTreeNode>();
-			var openNodes = new List<PathTreeNode>();
+			var openNodes = new List<PathTreeNode> {new PathTreeNode(startPosition, null, 0)};
 
-			openNodes.Add(new PathTreeNode(startPosition, null, 0));
 
-			while(true)
+			while (true)
 			{
-				if(openNodes.Count == 0)
+				if (openNodes.Count == 0)
 				{
 					depth = 0;
 					return null;
@@ -213,25 +79,23 @@ namespace PolyPath
 
 				var currentNode = openNodes[0];
 				var currentPosition = currentNode.Position;
-				if(!closedNodes.Contains(currentNode))
+				if (!closedNodes.Contains(currentNode))
 				{
-					if(currentPosition == endPosition)
+					if (currentPosition == endPosition)
 						return CreatePath(currentNode, out depth, userData);
 
-					PathTreeNode left = null, up = null, right = null, down = null;
+					var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, userData);
+					var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, userData);
+					var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, userData);
+					var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, userData);
 
-					left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, userData);
-					up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, userData);
-					right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, userData);
-					down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, userData);
-
-					if(left != null && up != null)
+					if (left != null && up != null)
 						ProcessNode(currentNode, -1, -1, openNodes, closedNodes, userData);
-					if(right != null && up != null)
+					if (right != null && up != null)
 						ProcessNode(currentNode, 1, -1, openNodes, closedNodes, userData);
-					if(right != null && down != null)
+					if (right != null && down != null)
 						ProcessNode(currentNode, 1, 1, openNodes, closedNodes, userData);
-					if(left != null && down != null)
+					if (left != null && down != null)
 						ProcessNode(currentNode, -1, 1, openNodes, closedNodes, userData);
 
 					closedNodes.Add(currentNode);
@@ -249,16 +113,128 @@ namespace PolyPath
 		{
 			int depth;
 			var pathPoints = FindPath(startPosition, endPosition, out depth, userData);
-			if(pathPoints == null)
+			if (pathPoints == null)
 				return null;
-			var output = new Path();
-			output.Depth = depth;
-			foreach(var point in pathPoints)
+			var output = new Path {Depth = depth};
+			foreach (var point in pathPoints)
 			{
 				var node = pathingPolygon.GetNodeAtColumnRow(point.X, point.Y);
 				output.AddWaypoint(node.Bounds.Center.ToVector2());
 			}
 			return output;
+		}
+
+		private bool ContinuesHorizontally(Point previousPoint, Point currentPoint, Point nextPoint)
+		{
+			return currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
+		}
+
+		private bool ContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint)
+		{
+			return currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
+		}
+
+		private bool ContinuesDiagonallyTest(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset)
+		{
+			return (currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y) &&
+					(currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y);
+		}
+
+		private bool ContinuesDiagonally(Point previousPoint, Point currentPoint, Point nextPoint)
+		{
+			return ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, -1) ||
+					ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, 1) ||
+					ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, 1) ||
+					ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, -1);
+		}
+
+		private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData = null)
+		{
+			var output = new List<Point>();
+			var parent = node;
+			while (parent != null)
+			{
+				output.Insert(0, parent.Position);
+				parent = parent.Parent;
+			}
+
+			if (userData != null)
+			{
+				for (var index = output.Count - 1; index >= 0; --index)
+				{
+					var poppingWaypoints = userData.PopWaypointTest(output[index], index);
+					if (!poppingWaypoints)
+						break;
+
+					output.RemoveAt(index);
+				}
+
+				if (output.Count == 0)
+				{
+					depth = 0;
+					return output.ToArray();
+				}
+
+				if (userData.PopFirstWaypoint)
+					output.RemoveAt(0);
+
+				if (userData.PopLastNWaypoints > 0)
+				{
+					if (userData.PopLastNWaypoints > output.Count)
+					{
+						depth = 0;
+						output.Clear();
+						return output.ToArray();
+					}
+
+					output.RemoveRange(output.Count - userData.PopLastNWaypoints, userData.PopLastNWaypoints);
+				}
+			}
+			depth = output.Count;
+
+			if (TrimPaths)
+			{
+				var indicesToRemove = new List<int>();
+				for (var index = 1; index < output.Count - 1; ++index)
+				{
+					var previousPoint = output[index - 1];
+					var currentPoint = output[index];
+					var nextPoint = output[index + 1];
+
+					if (ContinuesHorizontally(previousPoint, currentPoint, nextPoint) || ContinuesVertically(previousPoint, currentPoint, nextPoint) || ContinuesDiagonally(previousPoint, currentPoint, nextPoint))
+						indicesToRemove.Add(index);
+				}
+
+				for (var index = indicesToRemove.Count - 1; index >= 0; --index)
+					output.RemoveAt(indicesToRemove[index]);
+			}
+			return output.ToArray();
+		}
+
+		private bool CheckNodeList(IEnumerable<PathTreeNode> nodes, Point point)
+		{
+			return CheckNodeList(nodes, point.X, point.Y);
+		}
+
+		private bool CheckNodeList(IEnumerable<PathTreeNode> nodes, int column, int row)
+		{
+			foreach (var node in nodes)
+				if (node.Position.X == column && node.Position.Y == row)
+					return true;
+			return false;
+		}
+
+		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, List<PathTreeNode> openNodes, List<PathTreeNode> closedNodes, FindPathData userData)
+		{
+			var newNode = new PathTreeNode(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset, currentNode, 0);
+			if ((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y, userData)) &&
+				!CheckNodeList(closedNodes, newNode.Position) &&
+				!CheckNodeList(openNodes, newNode.Position))
+			{
+				openNodes.Add(newNode);
+				return newNode;
+			}
+			return null;
 		}
 		#endregion
 	}

@@ -33,13 +33,11 @@ Description: TODO: Write a description of this file here.
 #endregion
 
 #region Using Statements
-
 #endregion
 
 namespace ExampleGame.Input
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public enum MouseButtons
 	{
@@ -48,6 +46,6 @@ namespace ExampleGame.Input
 		Middle,
 		Right,
 		X1,
-		X2,
-	};
+		X2
+	}
 }

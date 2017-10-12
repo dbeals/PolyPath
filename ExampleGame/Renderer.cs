@@ -41,67 +41,62 @@ using Microsoft.Xna.Framework.Graphics;
 namespace ExampleGame
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class Renderer
 	{
 		#region Variables
-		private Texture2D pixelTexture;
-		private SpriteBatch spriteBatch;
-		#endregion
-
-		#region Properties
+		private readonly SpriteBatch _spriteBatch;
+		private Texture2D _pixelTexture;
 		#endregion
 
 		#region Constructors
 		public Renderer(SpriteBatch spriteBatch)
 		{
-			this.spriteBatch = spriteBatch;
+			_spriteBatch = spriteBatch;
 		}
 		#endregion
 
 		#region Methods
 		public void LoadContent()
 		{
-			pixelTexture = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-			pixelTexture.SetData(new[] { Color.White });
+			_pixelTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
+			_pixelTexture.SetData(new[] {Color.White});
 		}
 
 		public void UnloadContent()
 		{
-			if(pixelTexture != null)
-				pixelTexture.Dispose();
+			_pixelTexture?.Dispose();
 
-			pixelTexture = null;
+			_pixelTexture = null;
 		}
 
 		public void Begin()
 		{
-			spriteBatch.Begin();
+			_spriteBatch.Begin();
 		}
 
-		public void DrawLine(SpriteBatch spriteBatch, float startX, float startY, float endX, float endY, Color color)
+		public void DrawLine(float startX, float startY, float endX, float endY, Color color)
 		{
 			var direction = new Vector2(endX, endY) - new Vector2(startX, startY);
-			spriteBatch.Draw(pixelTexture, new Rectangle((int)startX, (int)startY, (int)direction.Length(), 1), null, color, (float)Math.Atan2(direction.Y, direction.X), Vector2.Zero, SpriteEffects.None, 0);
+			_spriteBatch.Draw(_pixelTexture, new Rectangle((int) startX, (int) startY, (int) direction.Length(), 1), null, color, (float) Math.Atan2(direction.Y, direction.X), Vector2.Zero, SpriteEffects.None, 0);
 		}
 
-		public void DrawRectangle(SpriteBatch spriteBatch, Rectangle bounds, Color color)
+		public void DrawRectangle(Rectangle bounds, Color color)
 		{
-			DrawLine(spriteBatch, bounds.Left, bounds.Top, bounds.Right, bounds.Top, color);
-			DrawLine(spriteBatch, bounds.Right, bounds.Top, bounds.Right, bounds.Bottom, color);
-			DrawLine(spriteBatch, bounds.Left, bounds.Bottom, bounds.Right, bounds.Bottom, color);
-			DrawLine(spriteBatch, bounds.Left, bounds.Top, bounds.Left, bounds.Bottom, color);
+			DrawLine(bounds.Left, bounds.Top, bounds.Right, bounds.Top, color);
+			DrawLine(bounds.Right, bounds.Top, bounds.Right, bounds.Bottom, color);
+			DrawLine(bounds.Left, bounds.Bottom, bounds.Right, bounds.Bottom, color);
+			DrawLine(bounds.Left, bounds.Top, bounds.Left, bounds.Bottom, color);
 		}
 
-		public void FillRectangle(SpriteBatch spriteBatch, Rectangle bounds, Color color)
+		public void FillRectangle(Rectangle bounds, Color color)
 		{
-			spriteBatch.Draw(pixelTexture, bounds, color);
+			_spriteBatch.Draw(_pixelTexture, bounds, color);
 		}
 
 		public void End()
 		{
-			spriteBatch.End();
+			_spriteBatch.End();
 		}
 		#endregion
 	}

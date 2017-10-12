@@ -40,22 +40,13 @@ using Microsoft.Xna.Framework.Input;
 namespace ExampleGame.Input
 {
 	/// <summary>
-	/// 
 	/// </summary>
 	public sealed class KeyEventArgs : EventArgs
 	{
 		#region Properties
-		public Keys Key
-		{
-			get;
-			set;
-		}
+		public Keys Key { get; set; }
 
-		public KeyState EventType
-		{
-			get;
-			set;
-		}
+		public KeyState EventType { get; set; }
 		#endregion
 
 		#region Constructors
