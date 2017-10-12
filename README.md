@@ -75,7 +75,7 @@ The first node is popped BEFORE trimming is done.
 
 **PopLastNWaypoints**
 
-PopLastNWaypoints allows makes is meant to be used when moving an object to another object. Instead of trying to move them to a certain point within a range of the target object, simply have the system pop the last 2 or 3 waypoints off (depending on the size of the grid you're using; with our current project we're using 16 pixel nodes and popping 2 still seemed too close, so we pop 3.)
+PopLastNWaypoints is meant to be used when moving an object to another object. Instead of trying to move them to a certain point within a range of the target object, simply have the system pop the last 2 or 3 waypoints off (depending on the size of the grid you're using; with our current project we're using 16 pixel nodes and popping 2 still seemed too close, so we pop 3.)
 
 The nodes are popped BEFORE trimming is done.
 

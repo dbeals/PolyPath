@@ -49,6 +49,7 @@
     <Compile Include="FindPathData.cs" />
     <Compile Include="Path.cs" />
     <Compile Include="Pathfinder.cs" />
+    <Compile Include="PathingGridNode.cs" />
     <Compile Include="PathingPolygon.cs" />
     <Compile Include="PathTreeNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
