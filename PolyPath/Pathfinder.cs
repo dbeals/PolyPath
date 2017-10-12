@@ -24,20 +24,12 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
-************************************************************************
-Author: Donald Beals
-Description: The Pathfinder class, which is used to generate the actual
- * path; uses the A* algorithm.
-****************************** Change Log ******************************
-4/26/2015 3:49:53 PM - Created initial file. (dbeals)
 ***********************************************************************/
 #endregion
 
-#region Using Statements
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace PolyPath
 {

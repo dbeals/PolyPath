@@ -24,21 +24,13 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
-************************************************************************
-Author: Donald Beals
-Description: The PathingPolygon class, which is used to house the polygon
- * and generate the pathing grid.
-****************************** Change Log ******************************
-4/26/2015 4:24:47 PM - Created initial file. (dbeals)
 ***********************************************************************/
 #endregion
 
-#region Using Statements
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace PolyPath
 {
@@ -215,21 +207,5 @@ namespace PolyPath
 			return leftTopRightBottom;
 		}
 		#endregion
-	}
-
-	public struct PathingGridNode
-	{
-		public readonly int Column;
-		public readonly int Row;
-		public readonly Rectangle Bounds;
-		public readonly bool IsPathable;
-
-		public PathingGridNode(int column, int row, Rectangle bounds, bool isPathable)
-		{
-			Column = column;
-			Row = row;
-			Bounds = bounds;
-			IsPathable = isPathable;
-		}
 	}
 }

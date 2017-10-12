@@ -24,15 +24,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
-************************************************************************
-Author: Donald Beals
-Description: TODO: Write a description of this file here.
-****************************** Change Log ******************************
-4/26/2015 11:04:31 PM - Created initial file. (dbeals)
 ***********************************************************************/
-#endregion
-
-#region Using Statements
 #endregion
 
 namespace ExampleGame.Input

@@ -24,18 +24,10 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
-************************************************************************
-Author: Donald Beals
-Description: The PathTreeNode class, which is used when generating the
- * actual path.
-****************************** Change Log ******************************
-4/26/2015 3:50:08 PM - Created initial file. (dbeals)
 ***********************************************************************/
 #endregion
 
-#region Using Statements
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace PolyPath
 {

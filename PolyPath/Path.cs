@@ -24,21 +24,13 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org>
-************************************************************************
-Author: Donald Beals
-Description: The Path class, which contains the generated path as a set
- * of X/Y coordinates.
-****************************** Change Log ******************************
-4/26/2015 3:49:04 PM - Created initial file. (dbeals)
 ***********************************************************************/
 #endregion
 
-#region Using Statements
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
-#endregion
 
 namespace PolyPath
 {
