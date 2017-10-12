@@ -37,9 +37,7 @@ namespace PolyPath
 	{
 		#region Properties
 		public Point Position { get; set; }
-
 		public PathTreeNode Parent { get; set; }
-
 		public int Weight { get; set; }
 		#endregion
 

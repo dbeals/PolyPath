@@ -29,6 +29,7 @@ For more information, please refer to <http://unlicense.org>
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace PolyPath
@@ -46,20 +47,43 @@ namespace PolyPath
 		/// </summary>
 		public bool TrimPaths { get; set; }
 
+		/// <summary>
+		/// Gets or sets the check node callback.
+		/// </summary>
+		/// <value>
+		/// A callback that checks whether or not a node is valid. Should return true if it is valid, false otherwise.
+		/// </value>
 		public Func<int, int, FindPathData, bool> CheckNode { get; set; }
 		#endregion
 
 		#region Methods
+		/// <summary>
+		/// Finds the path.
+		/// </summary>
+		/// <param name="startColumn">The start column.</param>
+		/// <param name="startRow">The start row.</param>
+		/// <param name="endColumn">The end column.</param>
+		/// <param name="endRow">The end row.</param>
+		/// <param name="depth">An output variable; the depth of the path.</param>
+		/// <param name="userData">The user data used when processing nodes.</param>
+		/// <returns>A list of points defining the found path.</returns>
 		public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth, FindPathData userData = null)
 		{
 			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth, userData);
 		}
 
+		/// <summary>
+		/// Finds the path.
+		/// </summary>
+		/// <param name="startPosition">The start position.</param>
+		/// <param name="endPosition">The end position.</param>
+		/// <param name="depth">An output variable; the depth of the path.</param>
+		/// <param name="userData">The user data used when processing nodes.</param>
+		/// <returns>A list of points defining the found path.</returns>
 		public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData = null)
 		{
 			var closedNodes = new List<PathTreeNode>();
 			var openNodes = new List<PathTreeNode> {new PathTreeNode(startPosition, null, 0)};
-
 
 			while (true)
 			{
@@ -96,15 +120,32 @@ namespace PolyPath
 			}
 		}
 
+		/// <summary>
+		/// Finds the path.
+		/// </summary>
+		/// <param name="startColumn">The start column.</param>
+		/// <param name="startRow">The start row.</param>
+		/// <param name="endColumn">The end column.</param>
+		/// <param name="endRow">The end row.</param>
+		/// <param name="pathingPolygon">The pathing polygon to find the path inside of.</param>
+		/// <param name="userData">The user data used when processing nodes.</param>
+		/// <returns>A list of points defining the found path.</returns>
 		public Path FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon, FindPathData userData = null)
 		{
 			return FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon, userData);
 		}
 
+		/// <summary>
+		/// Finds the path.
+		/// </summary>
+		/// <param name="startPosition">The start position.</param>
+		/// <param name="endPosition">The end position.</param>
+		/// <param name="pathingPolygon">The pathing polygon.</param>
+		/// <param name="userData">The user data used when processing nodes.</param>
+		/// <returns>A list of points defining the found path.</returns>
 		public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData = null)
 		{
-			int depth;
-			var pathPoints = FindPath(startPosition, endPosition, out depth, userData);
+			var pathPoints = FindPath(startPosition, endPosition, out int depth, userData);
 			if (pathPoints == null)
 				return null;
 			var output = new Path {Depth = depth};
@@ -116,30 +157,75 @@ namespace PolyPath
 			return output;
 		}
 
-		private bool ContinuesHorizontally(Point previousPoint, Point currentPoint, Point nextPoint)
+		/// <summary>
+		/// Determines whether or not three points are horizontally next to each other.
+		/// </summary>
+		/// <param name="previousPoint">The previous point.</param>
+		/// <param name="currentPoint">The current point.</param>
+		/// <param name="nextPoint">The next point.</param>
+		/// <returns>
+		///   <c>true</c> if all three points are horizontally next to each other; otherwise, <c>false</c>.
+		/// </returns>
+		private bool PointsContinueHorizontally(Point previousPoint, Point currentPoint, Point nextPoint)
 		{
 			return currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
 		}
 
-		private bool ContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint)
+		/// <summary>
+		/// Determines whether or not three points are vertically next to each other.
+		/// </summary>
+		/// <param name="previousPoint">The previous point.</param>
+		/// <param name="currentPoint">The current point.</param>
+		/// <param name="nextPoint">The next point.</param>
+		/// <returns>
+		///   <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
+		/// </returns>
+		private bool PointsContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint)
 		{
 			return currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
 		}
 
-		private bool ContinuesDiagonallyTest(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset)
+		/// <summary>
+		/// Determines whether or not three points are diagonally next to each other.
+		/// </summary>
+		/// <param name="previousPoint">The previous point.</param>
+		/// <param name="currentPoint">The current point.</param>
+		/// <param name="nextPoint">The next point.</param>
+		/// <param name="xOffset">The x offset.</param>
+		/// <param name="yOffset">The y offset.</param>
+		/// <returns>
+		///   <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
+		/// </returns>
+		private bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset)
 		{
 			return (currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y) &&
 					(currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y);
 		}
 
-		private bool ContinuesDiagonally(Point previousPoint, Point currentPoint, Point nextPoint)
+		/// <summary>
+		/// Determines whether or not three points are diagonally next to each other.
+		/// </summary>
+		/// <param name="previousPoint">The previous point.</param>
+		/// <param name="currentPoint">The current point.</param>
+		/// <param name="nextPoint">The next point.</param>
+		/// <returns>
+		///   <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
+		/// </returns>
+		private bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint)
 		{
-			return ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, -1) ||
-					ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, 1, 1) ||
-					ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, 1) ||
-					ContinuesDiagonallyTest(previousPoint, currentPoint, nextPoint, -1, -1);
+			return PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, 1, -1) ||
+					PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, 1, 1) ||
+					PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, -1, 1) ||
+					PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, -1, -1);
 		}
 
+		/// <summary>
+		/// Creates the path.
+		/// </summary>
+		/// <param name="node">The node.</param>
+		/// <param name="depth">An output variable; the depth of the path.</param>
+		/// <param name="userData">The user data.</param>
+		/// <returns>A list of points defining the found path.</returns>
 		private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData = null)
 		{
 			var output = new List<Point>();
@@ -193,7 +279,7 @@ namespace PolyPath
 					var currentPoint = output[index];
 					var nextPoint = output[index + 1];
 
-					if (ContinuesHorizontally(previousPoint, currentPoint, nextPoint) || ContinuesVertically(previousPoint, currentPoint, nextPoint) || ContinuesDiagonally(previousPoint, currentPoint, nextPoint))
+					if (PointsContinueHorizontally(previousPoint, currentPoint, nextPoint) || PointsContinuesVertically(previousPoint, currentPoint, nextPoint) || PointsContinueDiagonally(previousPoint, currentPoint, nextPoint))
 						indicesToRemove.Add(index);
 				}
 
@@ -203,25 +289,49 @@ namespace PolyPath
 			return output.ToArray();
 		}
 
-		private bool CheckNodeList(IEnumerable<PathTreeNode> nodes, Point point)
+		/// <summary>
+		/// Determines if any of the specified nodes are at the point.
+		/// </summary>
+		/// <param name="nodes">The nodes.</param>
+		/// <param name="point">The point.</param>
+		/// <returns>
+		///   <c>true</c> if any of the points are at the point; otherwise, <c>false</c>.
+		/// </returns>
+		private bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, Point point)
 		{
-			return CheckNodeList(nodes, point.X, point.Y);
+			return AnyNodeIsAtPoint(nodes, point.X, point.Y);
 		}
 
-		private bool CheckNodeList(IEnumerable<PathTreeNode> nodes, int column, int row)
+		/// <summary>
+		/// Determines if any of the specified nodes are at the point.
+		/// </summary>
+		/// <param name="nodes">The nodes.</param>
+		/// <param name="column">The column.</param>
+		/// <param name="row">The row.</param>
+		/// <returns>
+		///   <c>true</c> if any of the points are at the point; otherwise, <c>false</c>.
+		/// </returns>
+		private bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, int column, int row)
 		{
-			foreach (var node in nodes)
-				if (node.Position.X == column && node.Position.Y == row)
-					return true;
-			return false;
+			return nodes.Any(node => node.Position.X == column && node.Position.Y == row);
 		}
 
-		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, List<PathTreeNode> openNodes, List<PathTreeNode> closedNodes, FindPathData userData)
+		/// <summary>
+		/// Processes the node.
+		/// </summary>
+		/// <param name="currentNode">The current node.</param>
+		/// <param name="columnOffset">The column offset.</param>
+		/// <param name="rowOffset">The row offset.</param>
+		/// <param name="openNodes">The list of open nodes that will be added to as nodes are processed.</param>
+		/// <param name="closedNodes">The closed nodes.</param>
+		/// <param name="userData">The user data.</param>
+		/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
+		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, FindPathData userData)
 		{
 			var newNode = new PathTreeNode(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset, currentNode, 0);
 			if ((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y, userData)) &&
-				!CheckNodeList(closedNodes, newNode.Position) &&
-				!CheckNodeList(openNodes, newNode.Position))
+				!AnyNodeIsAtPoint(closedNodes, newNode.Position) &&
+				!AnyNodeIsAtPoint(openNodes, newNode.Position))
 			{
 				openNodes.Add(newNode);
 				return newNode;

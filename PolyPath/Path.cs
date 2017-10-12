@@ -63,31 +63,67 @@ namespace PolyPath
 		#endregion
 
 		#region Methods
+		/// <summary>
+		/// Gets the distance vector to next waypoint.
+		/// </summary>
+		/// <param name="position">The position to calculate the distance from.</param>
+		/// <returns></returns>
 		public Vector2 GetDistanceVectorToNextWaypoint(Vector2 position)
 		{
 			return NextWaypoint == null ? Vector2.Zero : NextWaypoint.Value - position;
 		}
 
+		/// <summary>
+		/// Gets the direction vector to next waypoint.
+		/// </summary>
+		/// <param name="position">The position to calculate the direction from.</param>
+		/// <returns></returns>
 		public Vector2 GetDirectionVectorToNextWaypoint(Vector2 position)
 		{
 			return NextWaypoint == null ? Vector2.Zero : Vector2.Normalize(NextWaypoint.Value - position);
 		}
 
+		/// <summary>
+		/// Adds the waypoint.
+		/// </summary>
+		/// <param name="x">The x.</param>
+		/// <param name="y">The y.</param>
 		public void AddWaypoint(float x, float y)
 		{
 			AddWaypoint(new Vector2(x, y));
 		}
 
+		/// <summary>
+		/// Adds the waypoint.
+		/// </summary>
+		/// <param name="waypoint">The waypoint.</param>
 		public void AddWaypoint(Vector2 waypoint)
 		{
 			_waypoints.Add(waypoint);
 		}
 
+		/// <summary>
+		/// Adds the waypoints.
+		/// </summary>
+		/// <param name="newWaypoints">The new waypoints.</param>
 		public void AddWaypoints(IEnumerable<Vector2> newWaypoints)
 		{
 			_waypoints.AddRange(newWaypoints);
 		}
 
+		/// <summary>
+		/// Adds the waypoints.
+		/// </summary>
+		/// <param name="newWaypoints">The new waypoints.</param>
+		public void AddWaypoints(params Vector2[] newWaypoints)
+		{
+			_waypoints.AddRange(newWaypoints);
+		}
+
+		/// <summary>
+		/// Pops the last waypoint.
+		/// </summary>
+		/// <returns></returns>
 		public Vector2 PopWaypoint()
 		{
 			if (_waypoints == null || _waypoints.Count == 0)
@@ -97,11 +133,18 @@ namespace PolyPath
 			return output;
 		}
 
+		/// <summary>
+		/// Clears all of the waypoints.
+		/// </summary>
 		public void Clear()
 		{
 			_waypoints.Clear();
 		}
 
+		/// <summary>
+		/// Debugs the draw.
+		/// </summary>
+		/// <param name="drawLine">A callback that draws the line.</param>
 		public void DebugDraw(Action<Point, Point, int> drawLine)
 		{
 			if (drawLine == null)

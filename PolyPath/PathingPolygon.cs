@@ -40,17 +40,11 @@ namespace PolyPath
 	{
 		#region Properties
 		public List<Point> Points { get; private set; }
-
 		public PathingGridNode[] Nodes { get; private set; }
-
 		public int NodeWidth { get; private set; }
-
 		public int NodeHeight { get; private set; }
-
 		public int Width { get; private set; }
-
 		public int Height { get; private set; }
-
 		public bool IsClosed { get; private set; }
 
 		/// <summary>
@@ -70,6 +64,9 @@ namespace PolyPath
 		#endregion
 
 		#region Methods
+		/// <summary>
+		/// Closes the polygon by adding the first point again (if the first and last are not already the same.)
+		/// </summary>
 		public void Close()
 		{
 			if (Points.Last() != Points.First())
@@ -77,6 +74,9 @@ namespace PolyPath
 			IsClosed = true;
 		}
 
+		/// <summary>
+		/// Clears this instance.
+		/// </summary>
 		public void Clear()
 		{
 			Width = 0;
@@ -88,6 +88,11 @@ namespace PolyPath
 			IsClosed = false;
 		}
 
+		/// <summary>
+		/// Creates the grid.
+		/// </summary>
+		/// <param name="nodeWidth">Width of each node in the grid.</param>
+		/// <param name="nodeHeight">Height of each node in the grid.</param>
 		public void CreateGrid(int nodeWidth, int nodeHeight)
 		{
 			var minX = int.MaxValue;
@@ -123,6 +128,12 @@ namespace PolyPath
 			Nodes = output;
 		}
 
+		/// <summary>
+		/// Gets the node at 2D position.
+		/// </summary>
+		/// <param name="x">The x.</param>
+		/// <param name="y">The y.</param>
+		/// <returns>The node at the specified position or a blank node.</returns>
 		public PathingGridNode GetNodeAtXY(int x, int y)
 		{
 			foreach (var node in Nodes)
@@ -131,26 +142,55 @@ namespace PolyPath
 			return new PathingGridNode(-1, -1, Rectangle.Empty, false);
 		}
 
+		/// <summary>
+		/// Gets the node at 2D position.
+		/// </summary>
+		/// <param name="point">The point.</param>
+		/// <returns>The node at the specified position or a blank node.</returns>
 		public PathingGridNode GetNodeAtXY(Point point)
 		{
 			return GetNodeAtXY(point.X, point.Y);
 		}
 
+		/// <summary>
+		/// Gets the node at column/row.
+		/// </summary>
+		/// <param name="column">The column.</param>
+		/// <param name="row">The row.</param>
+		/// <returns>The node at the specified position or a blank node.</returns>
 		public PathingGridNode GetNodeAtColumnRow(int column, int row)
 		{
 			return Nodes[(row * Width) + column];
 		}
 
+		/// <summary>
+		/// Gets the node at column/row.
+		/// </summary>
+		/// <param name="point">The point.</param>
+		/// <returns>The node at the specified position or a blank node.</returns>
 		public PathingGridNode GetNodeAtColumnRow(Point point)
 		{
 			return GetNodeAtColumnRow(point.X, point.Y);
 		}
 
+		/// <summary>
+		/// Determines whether column/row is inside the bounds of the grid.
+		/// </summary>
+		/// <param name="column">The column.</param>
+		/// <param name="row">The row.</param>
+		/// <returns>
+		///   <c>true</c> column/row is inside the bounds of the grid; otherwise, <c>false</c>.
+		/// </returns>
 		public bool ContainsColumnRow(int column, int row)
 		{
 			return column >= 0 && column < Width && row >= 0 && row < Height;
 		}
 
+		/// <summary>
+		/// The debug draw function.
+		/// </summary>
+		/// <param name="drawLine">The callback to draw a line.</param>
+		/// <param name="drawNode">The callback to draw a node.</param>
 		public void DebugDraw(Action<Point, Point, int> drawLine, Action<PathingGridNode> drawNode)
 		{
 			if (drawNode != null && IsClosed)
@@ -175,6 +215,15 @@ namespace PolyPath
 			}
 		}
 
+		/// <summary>
+		/// Determines whether the specified testX/testY is inside the specified points.
+		/// </summary>
+		/// <param name="points">The points.</param>
+		/// <param name="testX">The test x.</param>
+		/// <param name="testY">The test y.</param>
+		/// <returns>
+		///   <c>true</c> if testX/testY is inside of the points; otherwise, <c>false</c>.
+		/// </returns>
 		private static bool IsPointInsidePolygon(Point[] points, int testX, int testY)
 		{
 			var counter = 0;
@@ -197,6 +246,15 @@ namespace PolyPath
 			return counter % 2 != 0;
 		}
 
+		/// <summary>
+		/// Determines whether the specified rectangle is inside the specified points. If tightTest is true, all corners must be inside the points.
+		/// </summary>
+		/// <param name="points">The points.</param>
+		/// <param name="node">The node.</param>
+		/// <param name="tightTest">if set to <c>true</c>, all corners must be inside the points. Otherwise, only the diagonal pairs (top-left, bottom-right/top-right, bottom-left) must be inside the points.</param>
+		/// <returns>
+		///   <c>true</c> if the rectangle is inside the points; otherwise, <c>false</c>.
+		/// </returns>
 		private static bool IsRectangleInsidePolygon(Point[] points, Rectangle node, bool tightTest)
 		{
 			var leftTopRightBottom = (IsPointInsidePolygon(points, node.Left, node.Top) && IsPointInsidePolygon(points, node.Right, node.Bottom));

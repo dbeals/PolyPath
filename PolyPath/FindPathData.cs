@@ -37,12 +37,17 @@ namespace PolyPath
 	{
 		#region Properties
 		public bool PopFirstWaypoint { get; set; }
-
 		public int PopLastNWaypoints { get; set; }
 		#endregion
 
 		#region Methods
-		public virtual bool PopWaypointTest(Point nodePosition, int index)
+		/// <summary>
+		/// Pops the waypoint test.
+		/// </summary>
+		/// <param name="waypointPosition">The waypoint position.</param>
+		/// <param name="index">The zero-based index of the waypoint in the path.</param>
+		/// <returns></returns>
+		public virtual bool PopWaypointTest(Point waypointPosition, int index)
 		{
 			return false;
 		}
