@@ -27,6 +27,8 @@ For more information, please refer to <http://unlicense.org>
 ***********************************************************************/
 #endregion
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using ExampleGame.Input;
 using Microsoft.Xna.Framework;
@@ -42,13 +44,59 @@ namespace ExampleGame
 	/// </summary>
 	public class GameEngine : Game
 	{
+		private sealed class CustomFindPathData : FindPathData
+		{
+			public const int Scalar = 10;
+
+			private readonly Dictionary<Tuple<int, int>, int> _weights;
+
+			public CustomFindPathData()
+			{
+				_weights = new Dictionary<Tuple<int, int>, int>();
+			}
+
+			public void Clear()
+			{
+				_weights.Clear();
+			}
+
+			public void IncrementWeight(int column, int row)
+			{
+				var key = new Tuple<int, int>(column, row);
+				if (!_weights.TryGetValue(key, out int weight))
+					_weights[key] = 0;
+				++weight;
+				_weights[key] = weight;
+			}
+
+			public void DecrementWeight(int column, int row)
+			{
+				var key = new Tuple<int, int>(column, row);
+				if (!_weights.TryGetValue(key, out int weight))
+					_weights[key] = 0;
+				--weight;
+				if (weight < 0)
+					weight = 0;
+				_weights[key] = weight;
+			}
+
+			public override int GetWeight(Point waypointPosition, int index)
+			{
+				var key = new Tuple<int, int>(waypointPosition.X, waypointPosition.Y);
+				return (_weights.TryGetValue(key, out int weight) ? weight : 0) * Scalar;
+			}
+		}
+
 		#region Variables
 		// Input
 		private readonly InputManager _inputManager = new InputManager();
+		private bool _shiftPressed;
+		private bool _controlPressed;
 
 		// Pathing
 		private readonly Pathfinder _pathfinder = new Pathfinder();
 		private readonly PathingPolygon _pathingPolygon = new PathingPolygon();
+		private CustomFindPathData _userData = new CustomFindPathData();
 
 		private bool _showHelp = true;
 
@@ -163,7 +211,14 @@ namespace ExampleGame
 
 			void DrawNode(PathingGridNode node)
 			{
-				_renderer.DrawRectangle(node.Bounds, Color.White);
+				var weight = _userData.GetWeight(new Point(node.Column, node.Row), 0);
+
+				var color = Color.Lerp(Color.White, Color.Red, weight / (CustomFindPathData.Scalar * 3f));
+
+				if (color == Color.White)
+					_renderer.DrawRectangle(node.Bounds, color);
+				else
+					_renderer.FillRectangle(node.Bounds, color);
 			}
 
 			_pathingPolygon.DebugDraw(DrawLine, DrawNode);
@@ -204,7 +259,25 @@ namespace ExampleGame
 		private void inputManager_KeyStateChanged(object sender, KeyEventArgs e)
 		{
 			if (e.EventType == KeyState.Down)
+			{
+				switch (e.Key)
+				{
+					case Keys.LeftShift:
+					case Keys.RightShift:
+					{
+						_shiftPressed = true;
+						break;
+					}
+
+					case Keys.LeftControl:
+					case Keys.RightControl:
+					{
+						_controlPressed = true;
+						break;
+					}
+				}
 				return;
+			}
 
 			switch (e.Key)
 			{
@@ -218,7 +291,7 @@ namespace ExampleGame
 				{
 					_pathfinder.TrimPaths = !_pathfinder.TrimPaths;
 					if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
-						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
+						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 					break;
 				}
 
@@ -229,9 +302,10 @@ namespace ExampleGame
 					{
 						_pathingPolygon.Close();
 						_pathingPolygon.CreateGrid(16, 16);
-					}
+						_userData.Clear();
+						}
 					if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
-						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
+						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 					break;
 				}
 
@@ -273,6 +347,7 @@ namespace ExampleGame
 									_pathingPolygon.Points.Add(new Point(reader.ReadInt32(), reader.ReadInt32()));
 								_pathingPolygon.Close();
 								_pathingPolygon.CreateGrid(16, 16);
+								_userData.Clear();
 							}
 						}
 					}
@@ -282,6 +357,20 @@ namespace ExampleGame
 				case Keys.F1:
 				{
 					_showHelp = !_showHelp;
+					break;
+				}
+
+				case Keys.LeftShift:
+				case Keys.RightShift:
+				{
+					_shiftPressed = false;
+					break;
+				}
+
+				case Keys.LeftControl:
+				case Keys.RightControl:
+				{
+					_controlPressed = false;
 					break;
 				}
 			}
@@ -342,6 +431,22 @@ namespace ExampleGame
 			}
 			else if (e.Button == MouseButtons.Left && e.EventType == ButtonState.Released)
 			{
+				if (_shiftPressed)
+				{
+					var node = _pathingPolygon.GetNodeAtXY(e.Position);
+					if (node.Column != -1 && node.Row != -1)
+						_userData.IncrementWeight(node.Column, node.Row);
+					return;
+				}
+
+				if (_controlPressed)
+				{
+					var node = _pathingPolygon.GetNodeAtXY(e.Position);
+					if (node.Column != -1 && node.Row != -1)
+						_userData.DecrementWeight(node.Column, node.Row);
+					return;
+				}
+
 				if (_selectPointIndex != -1)
 				{
 					if (_selectPointIndex == 0)
@@ -349,7 +454,10 @@ namespace ExampleGame
 
 					_selectPointIndex = -1;
 					if (_pathingPolygon.IsClosed)
+					{
 						_pathingPolygon.CreateGrid(16, 16);
+						_userData.Clear();
+					}
 				}
 				else if (!_pathingPolygon.IsClosed)
 				{
@@ -357,6 +465,7 @@ namespace ExampleGame
 					{
 						_pathingPolygon.Close();
 						_pathingPolygon.CreateGrid(16, 16);
+						_userData.Clear();
 					}
 					else
 						_pathingPolygon.Points.Add(e.Position);
@@ -371,7 +480,7 @@ namespace ExampleGame
 						else
 						{
 							_endNode = node;
-							_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
+							_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 						}
 					}
 				}
@@ -388,7 +497,7 @@ namespace ExampleGame
 					if (node.IsPathable)
 					{
 						_endNode = node;
-						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon);
+						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 					}
 				}
 				else if (_selectPointIndex != -1)

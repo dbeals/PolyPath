@@ -93,6 +93,8 @@ namespace PolyPath
 					return null;
 				}
 
+				openNodes.Sort((node1, node2) => node1.Weight.CompareTo(node2.Weight));
+
 				var currentNode = openNodes[0];
 				var currentPosition = currentNode.Position;
 				if (!closedNodes.Contains(currentNode))
@@ -101,18 +103,48 @@ namespace PolyPath
 						return CreatePath(currentNode, out depth, userData);
 
 					var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, userData);
+					if (left != null)
+						left.Weight += (int)(left.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+
 					var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, userData);
+					if (up != null)
+						up.Weight += (int)(up.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+
 					var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, userData);
+					if (right != null)
+						right.Weight += (int)(right.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+
 					var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, userData);
+					if (down != null)
+						down.Weight += (int)(down.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
 
 					if (left != null && up != null)
-						ProcessNode(currentNode, -1, -1, openNodes, closedNodes, userData);
+					{
+						var topLeft = ProcessNode(currentNode, -1, -1, openNodes, closedNodes, userData);
+						if (topLeft != null)
+							topLeft.Weight += (int)(topLeft.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+					}
+
 					if (right != null && up != null)
-						ProcessNode(currentNode, 1, -1, openNodes, closedNodes, userData);
+					{
+						var topRight = ProcessNode(currentNode, 1, -1, openNodes, closedNodes, userData);
+						if (topRight != null)
+							topRight.Weight += (int)(topRight.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+					}
+
 					if (right != null && down != null)
-						ProcessNode(currentNode, 1, 1, openNodes, closedNodes, userData);
+					{
+						var bottomRight = ProcessNode(currentNode, 1, 1, openNodes, closedNodes, userData);
+						if (bottomRight != null)
+							bottomRight.Weight += (int)(bottomRight.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+					}
+
 					if (left != null && down != null)
-						ProcessNode(currentNode, -1, 1, openNodes, closedNodes, userData);
+					{
+						var bottomLeft = ProcessNode(currentNode, -1, 1, openNodes, closedNodes, userData);
+						if (bottomLeft != null)
+							bottomLeft.Weight += (int)(bottomLeft.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+					}
 
 					closedNodes.Add(currentNode);
 				}
@@ -328,7 +360,9 @@ namespace PolyPath
 		/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
 		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, FindPathData userData)
 		{
-			var newNode = new PathTreeNode(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset, currentNode, 0);
+			var position = new Point(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset);
+			var weight = userData?.GetWeight(position, 0) ?? 0;
+			var newNode = new PathTreeNode(position, currentNode, weight);
 			if ((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y, userData)) &&
 				!AnyNodeIsAtPoint(closedNodes, newNode.Position) &&
 				!AnyNodeIsAtPoint(openNodes, newNode.Position))

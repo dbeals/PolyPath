@@ -35,8 +35,31 @@ namespace PolyPath
 	/// </summary>
 	internal sealed class PathTreeNode
 	{
+		#region Variables
+		private Point _position;
+		#endregion
+
 		#region Properties
-		public Point Position { get; set; }
+		public Point Position
+		{
+			get => _position;
+			set => _position = value;
+		}
+
+		public int Column
+		{
+			get => _position.X;
+			set => _position.X = value;
+		}
+
+		public int Row
+		{
+			get => _position.Y;
+			set => _position.Y = value;
+		}
+
+		public bool IsInvalid => Column == -1 && Row == -1;
+
 		public PathTreeNode Parent { get; set; }
 		public int Weight { get; set; }
 		#endregion

@@ -46,10 +46,21 @@ namespace PolyPath
 		/// </summary>
 		/// <param name="waypointPosition">The waypoint position.</param>
 		/// <param name="index">The zero-based index of the waypoint in the path.</param>
-		/// <returns></returns>
+		/// <returns><c>true</c> if the waypoint should be popped; <c>false</c> otherwise.</returns>
 		public virtual bool PopWaypointTest(Point waypointPosition, int index)
 		{
 			return false;
+		}
+
+		/// <summary>
+		/// Gets the weight.
+		/// </summary>
+		/// <param name="waypointPosition">The waypoint position.</param>
+		/// <param name="index">The zero-based index of the waypoint in the path.</param>
+		/// <returns>The numeric weight of the node at the position.</returns>
+		public virtual int GetWeight(Point waypointPosition, int index)
+		{
+			return 1;
 		}
 		#endregion
 	}
