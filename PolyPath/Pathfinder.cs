@@ -63,7 +63,7 @@ namespace PolyPath
 		/// <param name="depth">An output variable; the depth of the path.</param>
 		/// <param name="userData">The user data used when processing nodes.</param>
 		/// <returns>A list of points defining the found path.</returns>
-		public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth, FindPathData userData = null) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth, userData);
+		public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth, FindPathData userData) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth, userData);
 
 		/// <summary>
 		///     Finds the path.
@@ -73,7 +73,7 @@ namespace PolyPath
 		/// <param name="depth">An output variable; the depth of the path.</param>
 		/// <param name="userData">The user data used when processing nodes.</param>
 		/// <returns>A list of points defining the found path.</returns>
-		public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData = null)
+		public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData)
 		{
 			var closedNodes = new List<PathTreeNode>();
 			var openNodes = new List<PathTreeNode>
@@ -86,7 +86,7 @@ namespace PolyPath
 				if (openNodes.Count == 0)
 				{
 					depth = 0;
-					return null;
+					return Array.Empty<Point>();
 				}
 
 				openNodes.Sort((node1, node2) => node1.Weight.CompareTo(node2.Weight));
@@ -98,49 +98,22 @@ namespace PolyPath
 					if (currentPosition == endPosition)
 						return CreatePath(currentNode, out depth, userData);
 
-					var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, userData);
-					if (left != null)
-						left.Weight += (int) (left.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-
-					var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, userData);
-					if (up != null)
-						up.Weight += (int) (up.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-
-					var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, userData);
-					if (right != null)
-						right.Weight += (int) (right.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-
-					var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, userData);
-					if (down != null)
-						down.Weight += (int) (down.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
+					var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, endPosition, userData);
+					var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, endPosition, userData);
+					var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, endPosition, userData);
+					var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, endPosition, userData);
 
 					if (left != null && up != null)
-					{
-						var topLeft = ProcessNode(currentNode, -1, -1, openNodes, closedNodes, userData);
-						if (topLeft != null)
-							topLeft.Weight += (int) (topLeft.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-					}
+						ProcessNode(currentNode, -1, -1, openNodes, closedNodes, endPosition, userData);
 
 					if (right != null && up != null)
-					{
-						var topRight = ProcessNode(currentNode, 1, -1, openNodes, closedNodes, userData);
-						if (topRight != null)
-							topRight.Weight += (int) (topRight.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-					}
+						ProcessNode(currentNode, 1, -1, openNodes, closedNodes, endPosition, userData);
 
 					if (right != null && down != null)
-					{
-						var bottomRight = ProcessNode(currentNode, 1, 1, openNodes, closedNodes, userData);
-						if (bottomRight != null)
-							bottomRight.Weight += (int) (bottomRight.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-					}
+						ProcessNode(currentNode, 1, 1, openNodes, closedNodes, endPosition, userData);
 
 					if (left != null && down != null)
-					{
-						var bottomLeft = ProcessNode(currentNode, -1, 1, openNodes, closedNodes, userData);
-						if (bottomLeft != null)
-							bottomLeft.Weight += (int) (bottomLeft.Position.ToVector2() - endPosition.ToVector2()).LengthSquared();
-					}
+						ProcessNode(currentNode, -1, 1, openNodes, closedNodes, endPosition, userData);
 
 					closedNodes.Add(currentNode);
 				}
@@ -159,7 +132,7 @@ namespace PolyPath
 		/// <param name="pathingPolygon">The pathing polygon to find the path inside of.</param>
 		/// <param name="userData">The user data used when processing nodes.</param>
 		/// <returns>A list of points defining the found path.</returns>
-		public Path FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon, FindPathData userData = null) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon, userData);
+		public Path FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon, FindPathData userData) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon, userData);
 
 		/// <summary>
 		///     Finds the path.
@@ -169,11 +142,11 @@ namespace PolyPath
 		/// <param name="pathingPolygon">The pathing polygon.</param>
 		/// <param name="userData">The user data used when processing nodes.</param>
 		/// <returns>A list of points defining the found path.</returns>
-		public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData = null)
+		public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData)
 		{
 			var pathPoints = FindPath(startPosition, endPosition, out var depth, userData);
-			if (pathPoints == null)
-				return null;
+			if (!pathPoints.Any())
+				return new Path();
 			var output = new Path
 			{
 				Depth = depth
@@ -245,7 +218,7 @@ namespace PolyPath
 		/// <param name="depth">An output variable; the depth of the path.</param>
 		/// <param name="userData">The user data.</param>
 		/// <returns>A list of points defining the found path.</returns>
-		private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData = null)
+		private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData)
 		{
 			var output = new List<Point>();
 			var parent = node;
@@ -344,10 +317,10 @@ namespace PolyPath
 		/// <param name="closedNodes">The closed nodes.</param>
 		/// <param name="userData">The user data.</param>
 		/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
-		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, FindPathData userData)
+		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, Point endPosition, FindPathData userData)
 		{
 			var position = new Point(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset);
-			var weight = userData?.GetWeight(position, 0) ?? 0;
+			var weight = currentNode.Weight + userData?.GetWeight(position, endPosition, 0) ?? 0;
 			var newNode = new PathTreeNode(position, currentNode, weight);
 			if (CheckNode != null && !CheckNode(newNode.Position.X, newNode.Position.Y, userData) || AnyNodeIsAtPoint(closedNodes, newNode.Position) || AnyNodeIsAtPoint(openNodes, newNode.Position))
 				return null;
