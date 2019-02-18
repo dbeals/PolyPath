@@ -1,31 +1,29 @@
-﻿#region File Header
-/***********************************************************************
-This is free and unencumbered software released into the public domain.
-
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means.
-
-In jurisdictions that recognize copyright laws, the author or authors
-of this software dedicate any and all copyright interest in the
-software to the public domain. We make this dedication for the benefit
-of the public at large and to the detriment of our heirs and
-successors. We intend this dedication to be an overt act of
-relinquishment in perpetuity of all present and future rights to this
-software under copyright law.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-For more information, please refer to <http://unlicense.org>
-***********************************************************************/
-#endregion
+﻿// /***********************************************************************
+// This is free and unencumbered software released into the public domain.
+// 
+// Anyone is free to copy, modify, publish, use, compile, sell, or
+// distribute this software, either in source code form or as a compiled
+// binary, for any purpose, commercial or non-commercial, and by any
+// means.
+// 
+// In jurisdictions that recognize copyright laws, the author or authors
+// of this software dedicate any and all copyright interest in the
+// software to the public domain. We make this dedication for the benefit
+// of the public at large and to the detriment of our heirs and
+// successors. We intend this dedication to be an overt act of
+// relinquishment in perpetuity of all present and future rights to this
+// software under copyright law.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+// 
+// For more information, please refer to <http://unlicense.org>
+// ***********************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -34,8 +32,6 @@ using Microsoft.Xna.Framework;
 
 namespace PolyPath
 {
-	/// <summary>
-	/// </summary>
 	public sealed class PathingPolygon
 	{
 		#region Properties
@@ -65,7 +61,7 @@ namespace PolyPath
 
 		#region Methods
 		/// <summary>
-		/// Closes the polygon by adding the first point again (if the first and last are not already the same.)
+		///     Closes the polygon by adding the first point again (if the first and last are not already the same.)
 		/// </summary>
 		public void Close()
 		{
@@ -75,7 +71,7 @@ namespace PolyPath
 		}
 
 		/// <summary>
-		/// Clears this instance.
+		///     Clears this instance.
 		/// </summary>
 		public void Clear()
 		{
@@ -89,7 +85,7 @@ namespace PolyPath
 		}
 
 		/// <summary>
-		/// Creates the grid.
+		///     Creates the grid.
 		/// </summary>
 		/// <param name="nodeWidth">Width of each node in the grid.</param>
 		/// <param name="nodeHeight">Height of each node in the grid.</param>
@@ -120,16 +116,19 @@ namespace PolyPath
 
 			var polygonPoints = Points.ToArray();
 			for (var row = 0; row < Height; ++row)
-			for (var column = 0; column < Width; ++column)
 			{
-				var nodeBounds = new Rectangle(bounds.X + (column * nodeWidth), bounds.Y + (row * nodeHeight), nodeWidth, nodeHeight);
-				output[(row * Width) + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
+				for (var column = 0; column < Width; ++column)
+				{
+					var nodeBounds = new Rectangle(bounds.X + (column * nodeWidth), bounds.Y + (row * nodeHeight), nodeWidth, nodeHeight);
+					output[(row * Width) + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
+				}
 			}
+
 			Nodes = output;
 		}
 
 		/// <summary>
-		/// Gets the node at 2D position.
+		///     Gets the node at 2D position.
 		/// </summary>
 		/// <param name="x">The x.</param>
 		/// <param name="y">The y.</param>
@@ -137,57 +136,48 @@ namespace PolyPath
 		public PathingGridNode GetNodeAtXY(int x, int y)
 		{
 			foreach (var node in Nodes)
+			{
 				if (node.Bounds.Contains(x, y))
 					return node;
+			}
+
 			return new PathingGridNode(-1, -1, Rectangle.Empty, false);
 		}
 
 		/// <summary>
-		/// Gets the node at 2D position.
+		///     Gets the node at 2D position.
 		/// </summary>
 		/// <param name="point">The point.</param>
 		/// <returns>The node at the specified position or a blank node.</returns>
-		public PathingGridNode GetNodeAtXY(Point point)
-		{
-			return GetNodeAtXY(point.X, point.Y);
-		}
+		public PathingGridNode GetNodeAtXY(Point point) => GetNodeAtXY(point.X, point.Y);
 
 		/// <summary>
-		/// Gets the node at column/row.
+		///     Gets the node at column/row.
 		/// </summary>
 		/// <param name="column">The column.</param>
 		/// <param name="row">The row.</param>
 		/// <returns>The node at the specified position or a blank node.</returns>
-		public PathingGridNode GetNodeAtColumnRow(int column, int row)
-		{
-			return Nodes[(row * Width) + column];
-		}
+		public PathingGridNode GetNodeAtColumnRow(int column, int row) => Nodes[(row * Width) + column];
 
 		/// <summary>
-		/// Gets the node at column/row.
+		///     Gets the node at column/row.
 		/// </summary>
 		/// <param name="point">The point.</param>
 		/// <returns>The node at the specified position or a blank node.</returns>
-		public PathingGridNode GetNodeAtColumnRow(Point point)
-		{
-			return GetNodeAtColumnRow(point.X, point.Y);
-		}
+		public PathingGridNode GetNodeAtColumnRow(Point point) => GetNodeAtColumnRow(point.X, point.Y);
 
 		/// <summary>
-		/// Determines whether column/row is inside the bounds of the grid.
+		///     Determines whether column/row is inside the bounds of the grid.
 		/// </summary>
 		/// <param name="column">The column.</param>
 		/// <param name="row">The row.</param>
 		/// <returns>
-		///   <c>true</c> column/row is inside the bounds of the grid; otherwise, <c>false</c>.
+		///     <c>true</c> column/row is inside the bounds of the grid; otherwise, <c>false</c>.
 		/// </returns>
-		public bool ContainsColumnRow(int column, int row)
-		{
-			return column >= 0 && column < Width && row >= 0 && row < Height;
-		}
+		public bool ContainsColumnRow(int column, int row) => column >= 0 && column < Width && row >= 0 && row < Height;
 
 		/// <summary>
-		/// The debug draw function.
+		///     The debug draw function.
 		/// </summary>
 		/// <param name="drawLine">The callback to draw a line.</param>
 		/// <param name="drawNode">The callback to draw a node.</param>
@@ -216,13 +206,13 @@ namespace PolyPath
 		}
 
 		/// <summary>
-		/// Determines whether the specified testX/testY is inside the specified points.
+		///     Determines whether the specified testX/testY is inside the specified points.
 		/// </summary>
 		/// <param name="points">The points.</param>
 		/// <param name="testX">The test x.</param>
 		/// <param name="testY">The test y.</param>
 		/// <returns>
-		///   <c>true</c> if testX/testY is inside of the points; otherwise, <c>false</c>.
+		///     <c>true</c> if testX/testY is inside of the points; otherwise, <c>false</c>.
 		/// </returns>
 		private static bool IsPointInsidePolygon(Point[] points, int testX, int testY)
 		{
@@ -240,6 +230,7 @@ namespace PolyPath
 					if (point1.X == point2.X || testX <= xinters)
 						++counter;
 				}
+
 				point1 = point2;
 			}
 
@@ -247,13 +238,17 @@ namespace PolyPath
 		}
 
 		/// <summary>
-		/// Determines whether the specified rectangle is inside the specified points. If tightTest is true, all corners must be inside the points.
+		///     Determines whether the specified rectangle is inside the specified points. If tightTest is true, all corners must
+		///     be inside the points.
 		/// </summary>
 		/// <param name="points">The points.</param>
 		/// <param name="node">The node.</param>
-		/// <param name="tightTest">if set to <c>true</c>, all corners must be inside the points. Otherwise, only the diagonal pairs (top-left, bottom-right/top-right, bottom-left) must be inside the points.</param>
+		/// <param name="tightTest">
+		///     if set to <c>true</c>, all corners must be inside the points. Otherwise, only the diagonal
+		///     pairs (top-left, bottom-right/top-right, bottom-left) must be inside the points.
+		/// </param>
 		/// <returns>
-		///   <c>true</c> if the rectangle is inside the points; otherwise, <c>false</c>.
+		///     <c>true</c> if the rectangle is inside the points; otherwise, <c>false</c>.
 		/// </returns>
 		private static bool IsRectangleInsidePolygon(Point[] points, Rectangle node, bool tightTest)
 		{

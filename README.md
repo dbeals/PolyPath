@@ -1,10 +1,10 @@
-#PolyPath
+# PolyPath
 
 **Please note that this library is still in it's early stages and has not been used with any projects. As such, it may go through a few major changes as we develop it.**
 
 PolyPath is designed for use in a non-grid based game. You provide a polygon and the system generates a grid inside of that, which is then used to generate a path (using the A* algorithm.)
 
-#Finding our way
+# Finding our way
 The first step is to generate the pathing grid. We do so by adding points to the polygon, closing it and then creating the grid:
 
 ```CSharp
@@ -57,10 +57,11 @@ if(path.NextWaypoint != null)
 }
 ```
 
-#Using the new FindPathData
+# Using the new FindPathData
 We have added a new class named FindPathData. This is considered a base class, but it can be used by itself. It has two properties: PopFirstWaypoint and PopLastNWaypoints and a method: PopWaypointTest().
 
 **PopWaypointTest**
+
 The system iterates backward over the points in the original path and offers the chance to verify that the node should be included. This affords the option to make sure that, while pathable, this is a point to be included in the final path (i.e. making sure that a character stays far enough away from a trap without setting it off when they have clicked on the trap.)
 
 This process is done before any other trimming or popping is done.
@@ -79,7 +80,7 @@ PopLastNWaypoints is meant to be used when moving an object to another object. I
 
 The nodes are popped BEFORE trimming is done.
 
-#To-do
+# To-do
 
 There are still a few things that need to be added:
 

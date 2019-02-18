@@ -1,31 +1,29 @@
-﻿#region File Header
-/***********************************************************************
-This is free and unencumbered software released into the public domain.
-
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means.
-
-In jurisdictions that recognize copyright laws, the author or authors
-of this software dedicate any and all copyright interest in the
-software to the public domain. We make this dedication for the benefit
-of the public at large and to the detriment of our heirs and
-successors. We intend this dedication to be an overt act of
-relinquishment in perpetuity of all present and future rights to this
-software under copyright law.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-For more information, please refer to <http://unlicense.org>
-***********************************************************************/
-#endregion
+﻿// /***********************************************************************
+// This is free and unencumbered software released into the public domain.
+// 
+// Anyone is free to copy, modify, publish, use, compile, sell, or
+// distribute this software, either in source code form or as a compiled
+// binary, for any purpose, commercial or non-commercial, and by any
+// means.
+// 
+// In jurisdictions that recognize copyright laws, the author or authors
+// of this software dedicate any and all copyright interest in the
+// software to the public domain. We make this dedication for the benefit
+// of the public at large and to the detriment of our heirs and
+// successors. We intend this dedication to be an overt act of
+// relinquishment in perpetuity of all present and future rights to this
+// software under copyright law.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+// 
+// For more information, please refer to <http://unlicense.org>
+// ***********************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -46,15 +44,15 @@ namespace ExampleGame
 	{
 		private sealed class CustomFindPathData : FindPathData
 		{
-			public const int Scalar = 10;
-
+			#region Variables
 			private readonly Dictionary<Tuple<int, int>, int> _weights;
+			#endregion
 
-			public CustomFindPathData()
-			{
-				_weights = new Dictionary<Tuple<int, int>, int>();
-			}
+			#region Constructors
+			public CustomFindPathData() => _weights = new Dictionary<Tuple<int, int>, int>();
+			#endregion
 
+			#region Methods
 			public void Clear()
 			{
 				_weights.Clear();
@@ -63,7 +61,7 @@ namespace ExampleGame
 			public void IncrementWeight(int column, int row)
 			{
 				var key = new Tuple<int, int>(column, row);
-				if (!_weights.TryGetValue(key, out int weight))
+				if (!_weights.TryGetValue(key, out var weight))
 					_weights[key] = 0;
 				++weight;
 				_weights[key] = weight;
@@ -72,7 +70,7 @@ namespace ExampleGame
 			public void DecrementWeight(int column, int row)
 			{
 				var key = new Tuple<int, int>(column, row);
-				if (!_weights.TryGetValue(key, out int weight))
+				if (!_weights.TryGetValue(key, out var weight))
 					_weights[key] = 0;
 				--weight;
 				if (weight < 0)
@@ -83,20 +81,23 @@ namespace ExampleGame
 			public override int GetWeight(Point waypointPosition, int index)
 			{
 				var key = new Tuple<int, int>(waypointPosition.X, waypointPosition.Y);
-				return (_weights.TryGetValue(key, out int weight) ? weight : 0) * Scalar;
+				return (_weights.TryGetValue(key, out var weight) ? weight : 0) * Scalar;
 			}
+			#endregion
+
+			public const int Scalar = 10;
 		}
 
 		#region Variables
 		// Input
 		private readonly InputManager _inputManager = new InputManager();
-		private bool _shiftPressed;
-		private bool _controlPressed;
 
 		// Pathing
 		private readonly Pathfinder _pathfinder = new Pathfinder();
 		private readonly PathingPolygon _pathingPolygon = new PathingPolygon();
-		private CustomFindPathData _userData = new CustomFindPathData();
+		private readonly CustomFindPathData _userData = new CustomFindPathData();
+		private bool _shiftPressed;
+		private bool _controlPressed;
 
 		private bool _showHelp = true;
 
@@ -252,6 +253,7 @@ namespace ExampleGame
 
 				_spriteBatch.DrawString(_uiFont, text, new Vector2(0, 0), Color.White);
 			}
+
 			_spriteBatch.End();
 			base.Draw(gameTime);
 		}
@@ -276,6 +278,7 @@ namespace ExampleGame
 						break;
 					}
 				}
+
 				return;
 			}
 
@@ -303,7 +306,8 @@ namespace ExampleGame
 						_pathingPolygon.Close();
 						_pathingPolygon.CreateGrid(16, 16);
 						_userData.Clear();
-						}
+					}
+
 					if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
 						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 					break;
@@ -326,6 +330,7 @@ namespace ExampleGame
 							}
 						}
 					}
+
 					break;
 				}
 
@@ -351,6 +356,7 @@ namespace ExampleGame
 							}
 						}
 					}
+
 					break;
 				}
 
