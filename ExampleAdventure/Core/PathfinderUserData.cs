@@ -47,7 +47,7 @@ namespace ExampleAdventure.Core
 		#endregion
 
 		#region Methods
-		public override int GetWeight(Point waypointPosition, Point endPosition, int index)
+		public override int GetWeight(Point waypointPosition, Point endPosition)
 		{
 			var output = 0;
 			var startPoint = waypointPosition.ToVector2();

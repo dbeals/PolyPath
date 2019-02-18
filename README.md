@@ -58,7 +58,7 @@ if(path.NextWaypoint != null)
 ```
 
 # Using the new FindPathData
-We have added a new class named FindPathData. This is considered a base class, but it can be used by itself. It has two properties: PopFirstWaypoint and PopLastNWaypoints and a method: PopWaypointTest().
+We have added a new class named FindPathData. This is considered a base class, but it can be used by itself. It has two properties: PopFirstWaypoint and PopLastNWaypoints and two methods: PopWaypointTest() and GetWeight.
 
 **PopWaypointTest**
 
@@ -80,9 +80,6 @@ PopLastNWaypoints is meant to be used when moving an object to another object. I
 
 The nodes are popped BEFORE trimming is done.
 
-# To-do
+**GetWeight**
 
-There are still a few things that need to be added:
-
-**Weighting**
-The algorithm does not currently incorporate weights.
+GetWeight takes a node position (grid indices, not X/Y) and an end position (again, grid indices). The game can then calculate a weight for that specific node. Check out the PathfinderUserData.cs file in the ExampleAdventure project for an example of calculating the weight. *Please note that the weight of the previous node is added to this value during pathfinding*.

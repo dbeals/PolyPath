@@ -320,7 +320,7 @@ namespace PolyPath
 		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, Point endPosition, FindPathData userData)
 		{
 			var position = new Point(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset);
-			var weight = currentNode.Weight + userData?.GetWeight(position, endPosition, 0) ?? 0;
+			var weight = currentNode.Weight + userData?.GetWeight(position, endPosition) ?? 0;
 			var newNode = new PathTreeNode(position, currentNode, weight);
 			if (CheckNode != null && !CheckNode(newNode.Position.X, newNode.Position.Y, userData) || AnyNodeIsAtPoint(closedNodes, newNode.Position) || AnyNodeIsAtPoint(openNodes, newNode.Position))
 				return null;

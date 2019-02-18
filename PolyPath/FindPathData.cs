@@ -48,10 +48,9 @@ namespace PolyPath
 		/// <summary>
 		///     Gets the weight.
 		/// </summary>
-		/// <param name="waypointPosition">The waypoint position.</param>
-		/// <param name="index">The zero-based index of the waypoint in the path.</param>
+		/// <param name="nodePosition">The waypoint position.</param>
 		/// <returns>The numeric weight of the node at the position.</returns>
-		public virtual int GetWeight(Point waypointPosition, Point endPosition, int index) => 1;
+		public virtual int GetWeight(Point nodePosition, Point endPosition) => 1;
 		#endregion
 	}
 }
