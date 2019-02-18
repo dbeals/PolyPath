@@ -25,15 +25,29 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-namespace ExampleGame.Input
+using System;
+
+namespace ExampleAdventure
 {
-	public enum MouseButtons
+#if WINDOWS || LINUX
+	/// <summary>
+	///     The main class.
+	/// </summary>
+	public static class Program
 	{
-		None,
-		Left,
-		Middle,
-		Right,
-		X1,
-		X2
+		#region Methods
+		/// <summary>
+		///     The main entry point for the application.
+		/// </summary>
+		[STAThread]
+		private static void Main()
+		{
+			using (var game = new GameEngine())
+			{
+				game.Run();
+			}
+		}
+		#endregion
 	}
+#endif
 }

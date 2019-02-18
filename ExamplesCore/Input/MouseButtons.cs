@@ -25,33 +25,15 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-
-namespace ExampleGame.Input
+namespace ExamplesCore.Input
 {
-	public sealed class MouseButtonEventArgs : EventArgs
+	public enum MouseButtons
 	{
-		#region Properties
-		public MouseButtons Button { get; private set; }
-
-		public ButtonState EventType { get; private set; }
-
-		public Point Position { get; private set; }
-
-		public int X => Position.X;
-
-		public int Y => Position.Y;
-		#endregion
-
-		#region Constructors
-		public MouseButtonEventArgs(MouseButtons button, ButtonState eventType, Point position)
-		{
-			Button = button;
-			EventType = eventType;
-			Position = position;
-		}
-		#endregion
+		None,
+		Left,
+		Middle,
+		Right,
+		X1,
+		X2
 	}
 }

@@ -27,30 +27,30 @@
 
 using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
-namespace ExampleGame.Input
+namespace ExamplesCore.Input
 {
-	public sealed class MouseMoveEventArgs : EventArgs
+	public sealed class MouseButtonEventArgs : EventArgs
 	{
 		#region Properties
-		public Point Position { get; private set; }
+		public MouseButtons Button { get; private set; }
 
-		public Point Offset { get; private set; }
+		public ButtonState EventType { get; private set; }
+
+		public Point Position { get; private set; }
 
 		public int X => Position.X;
 
 		public int Y => Position.Y;
-
-		public int OffsetX => Offset.X;
-
-		public int OffsetY => Offset.Y;
 		#endregion
 
 		#region Constructors
-		public MouseMoveEventArgs(Point position, Point offset)
+		public MouseButtonEventArgs(MouseButtons button, ButtonState eventType, Point position)
 		{
+			Button = button;
+			EventType = eventType;
 			Position = position;
-			Offset = offset;
 		}
 		#endregion
 	}

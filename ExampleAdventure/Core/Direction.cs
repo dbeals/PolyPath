@@ -24,26 +24,12 @@
 // 
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
-
-using System;
-using Microsoft.Xna.Framework.Input;
-
-namespace ExampleGame.Input
-{
-	public sealed class KeyEventArgs : EventArgs
+namespace ExampleAdventure.Core {
+	public enum Direction
 	{
-		#region Properties
-		public Keys Key { get; set; }
-
-		public KeyState EventType { get; set; }
-		#endregion
-
-		#region Constructors
-		public KeyEventArgs(Keys key, KeyState eventType)
-		{
-			Key = key;
-			EventType = eventType;
-		}
-		#endregion
+		North,
+		East,
+		South,
+		West
 	}
 }

@@ -25,67 +25,67 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using PolyPath;
 
-namespace ExampleGame
+namespace ExampleAdventure.Core
 {
-	public sealed class Renderer
+	public class Map
 	{
 		#region Variables
-		private readonly SpriteBatch _spriteBatch;
-		private Texture2D _pixelTexture;
+		private readonly MapNode[] _nodes;
+		#endregion
+
+		#region Properties
+		public int Width { get; }
+		public int Height { get; }
+
+		public List<Room> Rooms { get; } = new List<Room>();
+
+		public MapNode this[int column, int row]
+		{
+			get
+			{
+				var index = row * Width + column;
+				return _nodes[index] ?? (_nodes[index] = new MapNode());
+			}
+		}
 		#endregion
 
 		#region Constructors
-		public Renderer(SpriteBatch spriteBatch) => _spriteBatch = spriteBatch;
-		#endregion
-
-		#region Methods
-		public void LoadContent()
+		public Map(int width, int height)
 		{
-			_pixelTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
-			_pixelTexture.SetData(new[]
+			Width = width;
+			Height = height;
+			_nodes = new MapNode[width * height];
+		}
+
+		public Room GetRoomAt(int column, int row)
+		{
+			foreach (var room in Rooms)
 			{
-				Color.White
-			});
+				if (room.Bounds.Contains(column, row))
+					return room;
+			}
+
+			return null;
 		}
 
-		public void UnloadContent()
+		public bool IsPassable(int column, int row)
 		{
-			_pixelTexture?.Dispose();
+			if (column < 0 || row < 0 || column >= Width || row >= Height)
+				return false;
 
-			_pixelTexture = null;
-		}
+			var node = this[column, row];
+			if (node.Material == Material.None)
+				return false;
+			if (node.Material == Material.Wall)
+				return false;
+			if (node.Material == Material.Water)
+				return false;
 
-		public void Begin()
-		{
-			_spriteBatch.Begin();
-		}
-
-		public void DrawLine(float startX, float startY, float endX, float endY, Color color)
-		{
-			var direction = new Vector2(endX, endY) - new Vector2(startX, startY);
-			_spriteBatch.Draw(_pixelTexture, new Rectangle((int) startX, (int) startY, (int) direction.Length(), 1), null, color, (float) Math.Atan2(direction.Y, direction.X), Vector2.Zero, SpriteEffects.None, 0);
-		}
-
-		public void DrawRectangle(Rectangle bounds, Color color)
-		{
-			DrawLine(bounds.Left, bounds.Top, bounds.Right, bounds.Top, color);
-			DrawLine(bounds.Right, bounds.Top, bounds.Right, bounds.Bottom, color);
-			DrawLine(bounds.Left, bounds.Bottom, bounds.Right, bounds.Bottom, color);
-			DrawLine(bounds.Left, bounds.Top, bounds.Left, bounds.Bottom, color);
-		}
-
-		public void FillRectangle(Rectangle bounds, Color color)
-		{
-			_spriteBatch.Draw(_pixelTexture, bounds, color);
-		}
-
-		public void End()
-		{
-			_spriteBatch.End();
+			return true;
 		}
 		#endregion
 	}
