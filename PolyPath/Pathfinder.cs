@@ -221,8 +221,7 @@ namespace PolyPath
 		///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
 		/// </returns>
 		private bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset) =>
-			(currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y) &&
-			(currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y);
+			currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y && currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y;
 
 		/// <summary>
 		///     Determines whether or not three points are diagonally next to each other.
@@ -291,22 +290,22 @@ namespace PolyPath
 
 			depth = output.Count;
 
-			if (TrimPaths)
+			if (!TrimPaths)
+				return output.ToArray();
+
+			var indicesToRemove = new List<int>();
+			for (var index = 1; index < output.Count - 1; ++index)
 			{
-				var indicesToRemove = new List<int>();
-				for (var index = 1; index < output.Count - 1; ++index)
-				{
-					var previousPoint = output[index - 1];
-					var currentPoint = output[index];
-					var nextPoint = output[index + 1];
+				var previousPoint = output[index - 1];
+				var currentPoint = output[index];
+				var nextPoint = output[index + 1];
 
-					if (PointsContinueHorizontally(previousPoint, currentPoint, nextPoint) || PointsContinuesVertically(previousPoint, currentPoint, nextPoint) || PointsContinueDiagonally(previousPoint, currentPoint, nextPoint))
-						indicesToRemove.Add(index);
-				}
-
-				for (var index = indicesToRemove.Count - 1; index >= 0; --index)
-					output.RemoveAt(indicesToRemove[index]);
+				if (PointsContinueHorizontally(previousPoint, currentPoint, nextPoint) || PointsContinuesVertically(previousPoint, currentPoint, nextPoint) || PointsContinueDiagonally(previousPoint, currentPoint, nextPoint))
+					indicesToRemove.Add(index);
 			}
+
+			for (var index = indicesToRemove.Count - 1; index >= 0; --index)
+				output.RemoveAt(indicesToRemove[index]);
 
 			return output.ToArray();
 		}
@@ -350,15 +349,11 @@ namespace PolyPath
 			var position = new Point(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset);
 			var weight = userData?.GetWeight(position, 0) ?? 0;
 			var newNode = new PathTreeNode(position, currentNode, weight);
-			if ((CheckNode == null || CheckNode(newNode.Position.X, newNode.Position.Y, userData)) &&
-				!AnyNodeIsAtPoint(closedNodes, newNode.Position) &&
-				!AnyNodeIsAtPoint(openNodes, newNode.Position))
-			{
-				openNodes.Add(newNode);
-				return newNode;
-			}
+			if (CheckNode != null && !CheckNode(newNode.Position.X, newNode.Position.Y, userData) || AnyNodeIsAtPoint(closedNodes, newNode.Position) || AnyNodeIsAtPoint(openNodes, newNode.Position))
+				return null;
 
-			return null;
+			openNodes.Add(newNode);
+			return newNode;
 		}
 		#endregion
 	}

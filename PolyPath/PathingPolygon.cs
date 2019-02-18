@@ -119,8 +119,8 @@ namespace PolyPath
 			{
 				for (var column = 0; column < Width; ++column)
 				{
-					var nodeBounds = new Rectangle(bounds.X + (column * nodeWidth), bounds.Y + (row * nodeHeight), nodeWidth, nodeHeight);
-					output[(row * Width) + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
+					var nodeBounds = new Rectangle(bounds.X + column * nodeWidth, bounds.Y + row * nodeHeight, nodeWidth, nodeHeight);
+					output[row * Width + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
 				}
 			}
 
@@ -157,7 +157,7 @@ namespace PolyPath
 		/// <param name="column">The column.</param>
 		/// <param name="row">The row.</param>
 		/// <returns>The node at the specified position or a blank node.</returns>
-		public PathingGridNode GetNodeAtColumnRow(int column, int row) => Nodes[(row * Width) + column];
+		public PathingGridNode GetNodeAtColumnRow(int column, int row) => Nodes[row * Width + column];
 
 		/// <summary>
 		///     Gets the node at column/row.
@@ -194,14 +194,14 @@ namespace PolyPath
 				}
 			}
 
-			if (drawLine != null && Points.Count > 1)
+			if (drawLine == null || Points.Count <= 1)
+				return;
+
+			for (var index = 0; index < Points.Count - 1; ++index)
 			{
-				for (var index = 0; index < Points.Count - 1; ++index)
-				{
-					var start = Points[index];
-					var end = Points[index + 1];
-					drawLine(start, end, index);
-				}
+				var start = Points[index];
+				var end = Points[index + 1];
+				drawLine(start, end, index);
 			}
 		}
 
@@ -252,8 +252,8 @@ namespace PolyPath
 		/// </returns>
 		private static bool IsRectangleInsidePolygon(Point[] points, Rectangle node, bool tightTest)
 		{
-			var leftTopRightBottom = (IsPointInsidePolygon(points, node.Left, node.Top) && IsPointInsidePolygon(points, node.Right, node.Bottom));
-			var rightTopLeftBottom = (IsPointInsidePolygon(points, node.Right, node.Top) && IsPointInsidePolygon(points, node.Left, node.Bottom));
+			var leftTopRightBottom = IsPointInsidePolygon(points, node.Left, node.Top) && IsPointInsidePolygon(points, node.Right, node.Bottom);
+			var rightTopLeftBottom = IsPointInsidePolygon(points, node.Right, node.Top) && IsPointInsidePolygon(points, node.Left, node.Bottom);
 
 			if (tightTest)
 				return leftTopRightBottom && rightTopLeftBottom;

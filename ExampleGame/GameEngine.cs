@@ -124,7 +124,7 @@ namespace ExampleGame
 			_inputManager.MouseButtonStateChanged += inputManager_MouseButtonStateChanged;
 			_inputManager.MouseMoved += inputManager_MouseMoved;
 
-			_pathfinder.CheckNode = (column, row, userData) => _pathingPolygon.ContainsColumnRow(column, row) && _pathingPolygon.Nodes[(row * _pathingPolygon.Width) + column].IsPathable;
+			_pathfinder.CheckNode = (column, row, userData) => _pathingPolygon.ContainsColumnRow(column, row) && _pathingPolygon.Nodes[row * _pathingPolygon.Width + column].IsPathable;
 		}
 		#endregion
 
