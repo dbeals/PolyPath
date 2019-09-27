@@ -74,7 +74,7 @@ namespace ExampleAdventure.Core
 
 		public bool IsPassable(int column, int row)
 		{
-			if (column < 0 || row < 0 || column >= Width || row >= Height)
+			if (IsOutOfBounds(column, row))
 				return false;
 
 			var node = this[column, row];
@@ -87,6 +87,9 @@ namespace ExampleAdventure.Core
 
 			return true;
 		}
+
+		public bool Contains(int column, int row) => !IsOutOfBounds(column, row);
+		public bool IsOutOfBounds(int column, int row) => column < 0 || row < 0 || column >= Width || row >= Height;
 		#endregion
 	}
 }

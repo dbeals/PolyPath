@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExampleAdventure.Core;
+using ExampleAdventure.Extensions;
 using ExamplesCore;
 using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
@@ -39,6 +40,12 @@ namespace ExampleAdventure
 {
 	public class GameEngine : GameEngineBase
 	{
+		#region Variables
+		private bool _editorIsDragging = false;
+		private bool _isEditMode = false;
+		private Material _editorMaterial = Material.None;
+		#endregion
+
 		#region Properties
 		public Map Map { get; set; }
 		public BrushSet Brushes { get; set; }
@@ -52,7 +59,7 @@ namespace ExampleAdventure
 		{
 			base.LoadContent();
 
-			InitializeGame();
+			InitializeGame(false);
 		}
 
 		protected override void Update(GameTime gameTime)
@@ -74,53 +81,174 @@ namespace ExampleAdventure
 			Renderer.End();
 		}
 
+		private void HandleGameKeyboardInput(object sender, KeyEventArgs e)
+		{
+			if (e.EventType == KeyState.Up)
+			{
+				switch (e.Key)
+				{
+					case Keys.F1:
+					{
+						InitializeGame(false);
+						_isEditMode = false;
+						break;
+					}
+
+					case Keys.F2:
+					{
+						InitializeGame(true);
+						_isEditMode = true;
+						break;
+					}
+				}
+			}
+		}
+
+		private void HandleEditorKeyboardInput(object sender, KeyEventArgs e)
+		{
+			if (e.EventType == KeyState.Up)
+			{
+				switch (e.Key)
+				{
+					case Keys.D0:
+					{
+						_editorMaterial = Material.None;
+						break;
+					}
+					case Keys.D1:
+					{
+						_editorMaterial = Material.Dirt;
+						break;
+					}
+					case Keys.D2:
+					{
+						_editorMaterial = Material.Grass;
+						break;
+					}
+					case Keys.D3:
+					{
+						_editorMaterial = Material.Gravel;
+						break;
+					}
+					case Keys.D4:
+					{
+						_editorMaterial = Material.Water;
+						break;
+					}
+					case Keys.D5:
+					{
+						_editorMaterial = Material.Wall;
+						break;
+					}
+				}
+			}
+		}
+
 		protected override void OnKeyStateChanged(object sender, KeyEventArgs e)
 		{
 			base.OnKeyStateChanged(sender, e);
 
-			if (e.EventType == KeyState.Up && e.Key == Keys.F1)
-				InitializeGame();
+			if (e.EventType == KeyState.Up && e.Key == Keys.F5)
+				_isEditMode = !_isEditMode;
+
+			if (_isEditMode)
+				HandleEditorKeyboardInput(sender, e);
+			else
+				HandleGameKeyboardInput(sender, e);
+		}
+
+		private void HandleGameMouseInput(object sender, MouseButtonEventArgs e)
+		{
+			if (e.EventType == ButtonState.Released)
+			{
+				if (e.Button == MouseButtons.Left)
+				{
+					var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+
+					var room = Map.GetRoomAt(column, row);
+					if (room == null)
+						return;
+
+					var pathfinder = new Pathfinder
+					{
+						TrimPaths = false,
+						CheckNode = (testColumn, testRow, userData) =>
+						{
+							var testNode = Map[testColumn, testRow];
+							if (testNode.Material == Material.None || testNode.Material == Material.Wall || testNode.Material == Material.Water)
+								return false;
+							return true;
+						}
+					};
+
+					var pathPoints = pathfinder.FindPath(Player.Column, Player.Row, column, row, out var depth, new PathfinderUserData(Map, Player));
+					var path = new Path
+					{
+						Depth = depth
+					};
+
+					foreach (var point in pathPoints)
+					{
+						path.AddWaypoint(point.X, point.Y);
+					}
+
+					Player.Path = path;
+				}
+			}
+		}
+
+		private void HandleEditorMouseInput(object sender, MouseButtonEventArgs e)
+		{
+			if (e.EventType == ButtonState.Pressed)
+			{
+				if (e.Button == MouseButtons.Left)
+					_editorIsDragging = true;
+			}
+			if (e.EventType == ButtonState.Released)
+			{
+				_editorIsDragging = false;
+				if (e.Button == MouseButtons.Left)
+				{
+					var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+					SetMapNode(column, row, _editorMaterial);
+				}
+				else if (e.Button == MouseButtons.Right && Player != null)
+				{
+					var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+					Player.Column = column;
+					Player.Row = row;
+				}
+			}
+		}
+
+		private void SetMapNode(int column, int row, Material material)
+		{
+			if (Map.IsOutOfBounds(column, row))
+				return;
+
+			var node = Map[column, row];
+			node.Material = material;
+		}
+
+		protected override void OnMouseMoved(object sender, MouseMoveEventArgs e)
+		{
+			base.OnMouseMoved(sender, e);
+
+			if (_editorIsDragging)
+			{
+				var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+				SetMapNode(column, row, _editorMaterial);
+			}
 		}
 
 		protected override void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e)
 		{
 			base.OnMouseButtonStateChanged(sender, e);
 
-			if (e.EventType == ButtonState.Released && e.Button == MouseButtons.Left)
-			{
-				var column = e.X / TileWidth;
-				var row = e.Y / TileHeight;
-
-				var room = Map.GetRoomAt(column, row);
-				if (room == null)
-					return;
-				var node = Map[column, row];
-
-				var pathfinder = new Pathfinder
-				{
-					TrimPaths = false,
-					CheckNode = (testColumn, testRow, userData) =>
-					{
-						var testNode = Map[testColumn, testRow];
-						if (testNode.Material == Material.None || testNode.Material == Material.Wall || testNode.Material == Material.Water)
-							return false;
-						return true;
-					}
-				};
-
-				var pathPoints = pathfinder.FindPath(Player.Column, Player.Row, column, row, out var depth, new PathfinderUserData(Map, Player));
-				var path = new Path
-				{
-					Depth = depth
-				};
-
-				foreach (var point in pathPoints)
-				{
-					path.AddWaypoint(point.X, point.Y);
-				}
-
-				Player.Path = path;
-			}
+			if (_isEditMode)
+				HandleEditorMouseInput(sender, e);
+			else
+				HandleGameMouseInput(sender, e);
 		}
 
 		private void DrawMap()
@@ -145,6 +273,16 @@ namespace ExampleAdventure
 
 					Brushes[node.Material].DrawBounds(Renderer, bounds);
 				}
+			}
+
+			if (_isEditMode)
+			{
+				var (column, row) = Mouse.GetState().GetMouseColumnRow(TileWidth, TileHeight);
+				var mouseTileBounds = new Rectangle(column * TileWidth, row * TileHeight, TileWidth, TileHeight);
+				
+				var brush = Brushes[_editorMaterial];
+				brush.Draw(Renderer, mouseTileBounds);
+				brush.DrawBounds(Renderer, mouseTileBounds, Color.Red);
 			}
 		}
 
@@ -172,9 +310,9 @@ namespace ExampleAdventure
 			Renderer.FillRectangle(pixelBounds, Color.CornflowerBlue);
 		}
 
-		private void InitializeGame()
+		private void InitializeGame(bool custom)
 		{
-			Map = MapGenerator.GenerateMap(Rng, GraphicsDevice.Viewport.Width / TileWidth, GraphicsDevice.Viewport.Height / TileHeight);
+			Map = MapGenerator.GenerateMap(Rng, GraphicsDevice.Viewport.Width / TileWidth, GraphicsDevice.Viewport.Height / TileHeight, custom ? 0 : 100);
 
 			Brushes = new BrushSet
 			{
@@ -192,14 +330,20 @@ namespace ExampleAdventure
 
 		private void InitializePlayer()
 		{
-			var room = Map.Rooms[Rng.Next(0, Map.Rooms.Count)];
-			var column = Rng.Next(room.Bounds.Left + 1, room.Bounds.Right - 1);
-			var row = Rng.Next(room.Bounds.Top + 1, room.Bounds.Bottom - 1);
+			int column = 0;
+			int row = 0;
 
-			while(!Map.IsPassable(column, row))
+			if (Map.Rooms.Any())
 			{
+				var room = Map.Rooms[Rng.Next(0, Map.Rooms.Count)];
 				column = Rng.Next(room.Bounds.Left + 1, room.Bounds.Right - 1);
 				row = Rng.Next(room.Bounds.Top + 1, room.Bounds.Bottom - 1);
+
+				while (!Map.IsPassable(column, row))
+				{
+					column = Rng.Next(room.Bounds.Left + 1, room.Bounds.Right - 1);
+					row = Rng.Next(room.Bounds.Top + 1, room.Bounds.Bottom - 1);
+				}
 			}
 
 			Player = new Entity

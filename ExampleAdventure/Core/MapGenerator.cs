@@ -296,7 +296,8 @@ namespace ExampleAdventure.Core
 				}
 			}
 
-			GenerateRooms(output, random, maximumNumberOfRooms);
+			if (maximumNumberOfRooms > 0)
+				GenerateRooms(output, random, maximumNumberOfRooms);
 			return output;
 		}
 	}

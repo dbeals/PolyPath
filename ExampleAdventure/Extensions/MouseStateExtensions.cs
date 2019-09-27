@@ -25,48 +25,15 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using System.Collections.Generic;
-using ExamplesCore.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
-namespace ExampleAdventure.Core
+namespace ExampleAdventure.Extensions
 {
-	public class Brush
+	public static class MouseStateExtensions
 	{
-		#region Properties
-		public Color Color { get; set; }
-		#endregion
-
-		public Brush(Color color) => Color = color;
-
 		#region Methods
-		public void Draw(Renderer renderer, Rectangle bounds)
-		{
-			renderer.FillRectangle(bounds, Color);
-		}
-
-		public void DrawBounds(Renderer renderer, Rectangle bounds, Color? overrideColor = null)
-		{
-			var color = overrideColor ?? Color.FromNonPremultiplied(0, 0, 0, 64);
-			renderer.DrawRectangle(bounds, color);
-		}
+		public static Point GetMouseColumnRow(this MouseState mouseState, int tileWidth, int tileHeight) => new Point(mouseState.X / tileWidth, mouseState.Y / tileHeight);
 		#endregion
-	}
-
-	public class BrushSet
-	{
-		private readonly Dictionary<Material, Brush> _brushes = new Dictionary<Material, Brush>();
-
-		public Brush this[Material material]
-		{
-			get => _brushes[material];
-			set => _brushes[material] = value;
-		}
-
-		public void Draw(Renderer renderer, Rectangle bounds, Material material)
-		{
-			var brush = this[material];
-			brush.Draw(renderer, bounds);
-		}
 	}
 }
