@@ -1,11 +1,11 @@
 ﻿// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
-// 
+//
 // Anyone is free to copy, modify, publish, use, compile, sell, or
 // distribute this software, either in source code form or as a compiled
 // binary, for any purpose, commercial or non-commercial, and by any
 // means.
-// 
+//
 // In jurisdictions that recognize copyright laws, the author or authors
 // of this software dedicate any and all copyright interest in the
 // software to the public domain. We make this dedication for the benefit
@@ -13,7 +13,7 @@
 // successors. We intend this dedication to be an overt act of
 // relinquishment in perpetuity of all present and future rights to this
 // software under copyright law.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -21,7 +21,7 @@
 // OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-// 
+//
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
@@ -151,10 +151,10 @@ namespace PolyPath
 			{
 				Depth = depth
 			};
-			foreach (var point in pathPoints)
+			foreach (var (x, y) in pathPoints)
 			{
-				var node = pathingPolygon.GetNodeAtColumnRow(point.X, point.Y);
-				output.AddWaypoint(node.Bounds.Center.ToVector2());
+				var node = pathingPolygon.GetNodeAtColumnRow(x, y);
+				output.AddWaypoint(node.Bounds.Center.ToVector2(), 0f);
 			}
 
 			return output;
@@ -169,7 +169,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if all three points are horizontally next to each other; otherwise, <c>false</c>.
 		/// </returns>
-		private bool PointsContinueHorizontally(Point previousPoint, Point currentPoint, Point nextPoint) => currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
+		private static bool PointsContinueHorizontally(Point previousPoint, Point currentPoint, Point nextPoint) => currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
 
 		/// <summary>
 		///     Determines whether or not three points are vertically next to each other.
@@ -180,7 +180,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
 		/// </returns>
-		private bool PointsContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint) => currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
+		private static bool PointsContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint) => currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
 
 		/// <summary>
 		///     Determines whether or not three points are diagonally next to each other.
@@ -193,7 +193,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
 		/// </returns>
-		private bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset) =>
+		private static bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset) =>
 			currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y && currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y;
 
 		/// <summary>
@@ -205,7 +205,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
 		/// </returns>
-		private bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint) =>
+		private static bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint) =>
 			PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, 1, -1) ||
 			PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, 1, 1) ||
 			PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, -1, 1) ||

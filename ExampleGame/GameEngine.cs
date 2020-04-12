@@ -120,15 +120,18 @@ namespace ExampleGame
 			var boxColor = Color.Maroon;
 			var lineColor = Color.Red;
 
-			void DrawLine(Point start, Point end, int index)
+			void DrawLine(Vector3 start, Vector3 end, int index)
 			{
-				var boxSize = 8;
-				var boxOffset = boxSize / 2;
+				const int boxSize = 8;
+				const int boxOffset = boxSize / 2;
 
+				var (startX, startY, _) = start;
 				if (index == 0)
-					Renderer.FillRectangle(new Rectangle(start.X - boxOffset, start.Y - boxOffset, boxSize, boxSize), boxColor);
-				Renderer.FillRectangle(new Rectangle(end.X - boxOffset, end.Y - boxOffset, boxSize, boxSize), boxColor);
-				Renderer.DrawLine(start.X, start.Y, end.X, end.Y, lineColor);
+					Renderer.FillRectangle(new Rectangle((int)startX - boxOffset, (int)startY - boxOffset, boxSize, boxSize), boxColor);
+
+				var (endX, endY, _) = end;
+				Renderer.FillRectangle(new Rectangle((int)endX - boxOffset, (int)endY - boxOffset, boxSize, boxSize), boxColor);
+				Renderer.DrawLine(startX, startY, endX, endY, lineColor);
 			}
 
 			void DrawNode(PathingGridNode node)
