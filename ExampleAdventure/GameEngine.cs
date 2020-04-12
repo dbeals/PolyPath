@@ -1,11 +1,11 @@
 ﻿// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
-//
+// 
 // Anyone is free to copy, modify, publish, use, compile, sell, or
 // distribute this software, either in source code form or as a compiled
 // binary, for any purpose, commercial or non-commercial, and by any
 // means.
-//
+// 
 // In jurisdictions that recognize copyright laws, the author or authors
 // of this software dedicate any and all copyright interest in the
 // software to the public domain. We make this dedication for the benefit
@@ -13,7 +13,7 @@
 // successors. We intend this dedication to be an overt act of
 // relinquishment in perpetuity of all present and future rights to this
 // software under copyright law.
-//
+// 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -21,7 +21,7 @@
 // OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-//
+// 
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
@@ -41,8 +41,8 @@ namespace ExampleAdventure
 	public class GameEngine : GameEngineBase
 	{
 		#region Variables
-		private bool _editorIsDragging = false;
-		private bool _isEditMode = false;
+		private bool _editorIsDragging;
+		private bool _isEditMode;
 		private Material _editorMaterial = Material.None;
 		#endregion
 
@@ -79,6 +79,40 @@ namespace ExampleAdventure
 			foreach (var entity in Entities)
 				DrawEntity(entity);
 			Renderer.End();
+		}
+
+		protected override void OnKeyStateChanged(object sender, KeyEventArgs e)
+		{
+			base.OnKeyStateChanged(sender, e);
+
+			if (e.EventType == KeyState.Up && e.Key == Keys.F5)
+				_isEditMode = !_isEditMode;
+
+			if (_isEditMode)
+				HandleEditorKeyboardInput(sender, e);
+			else
+				HandleGameKeyboardInput(sender, e);
+		}
+
+		protected override void OnMouseMoved(object sender, MouseMoveEventArgs e)
+		{
+			base.OnMouseMoved(sender, e);
+
+			if (_editorIsDragging)
+			{
+				var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+				SetMapNode(column, row, _editorMaterial);
+			}
+		}
+
+		protected override void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e)
+		{
+			base.OnMouseButtonStateChanged(sender, e);
+
+			if (_isEditMode)
+				HandleEditorMouseInput(sender, e);
+			else
+				HandleGameMouseInput(sender, e);
 		}
 
 		private void HandleGameKeyboardInput(object sender, KeyEventArgs e)
@@ -144,19 +178,6 @@ namespace ExampleAdventure
 			}
 		}
 
-		protected override void OnKeyStateChanged(object sender, KeyEventArgs e)
-		{
-			base.OnKeyStateChanged(sender, e);
-
-			if (e.EventType == KeyState.Up && e.Key == Keys.F5)
-				_isEditMode = !_isEditMode;
-
-			if (_isEditMode)
-				HandleEditorKeyboardInput(sender, e);
-			else
-				HandleGameKeyboardInput(sender, e);
-		}
-
 		private void HandleGameMouseInput(object sender, MouseButtonEventArgs e)
 		{
 			if (e.EventType == ButtonState.Released)
@@ -188,9 +209,7 @@ namespace ExampleAdventure
 					};
 
 					foreach (var (x, y) in pathPoints)
-					{
 						path.AddWaypoint(x, y, 0f);
-					}
 
 					Player.Path = path;
 				}
@@ -204,6 +223,7 @@ namespace ExampleAdventure
 				if (e.Button == MouseButtons.Left)
 					_editorIsDragging = true;
 			}
+
 			if (e.EventType == ButtonState.Released)
 			{
 				_editorIsDragging = false;
@@ -228,27 +248,6 @@ namespace ExampleAdventure
 
 			var node = Map[column, row];
 			node.Material = material;
-		}
-
-		protected override void OnMouseMoved(object sender, MouseMoveEventArgs e)
-		{
-			base.OnMouseMoved(sender, e);
-
-			if (_editorIsDragging)
-			{
-				var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
-				SetMapNode(column, row, _editorMaterial);
-			}
-		}
-
-		protected override void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e)
-		{
-			base.OnMouseButtonStateChanged(sender, e);
-
-			if (_isEditMode)
-				HandleEditorMouseInput(sender, e);
-			else
-				HandleGameMouseInput(sender, e);
 		}
 
 		private void DrawMap()
@@ -286,16 +285,13 @@ namespace ExampleAdventure
 			}
 		}
 
-		private Rectangle GetColumnRowPixelBounds(int column, int row)
-		{
-			return new Rectangle(column * TileWidth, row * TileHeight, TileWidth, TileHeight);
-		}
+		private Rectangle GetColumnRowPixelBounds(int column, int row) => new Rectangle(column * TileWidth, row * TileHeight, TileWidth, TileHeight);
 
 		private void DrawPath(Path path)
 		{
 			foreach (var waypoint in path.Waypoints)
 			{
-				var waypointBounds = GetColumnRowPixelBounds((int)waypoint.X, (int)waypoint.Y);
+				var waypointBounds = GetColumnRowPixelBounds((int) waypoint.X, (int) waypoint.Y);
 				waypointBounds = new Rectangle(waypointBounds.X + 4, waypointBounds.Y + 4, waypointBounds.Width - 8, waypointBounds.Height - 8);
 				Renderer.FillRectangle(waypointBounds, Color.Red);
 			}
@@ -330,8 +326,8 @@ namespace ExampleAdventure
 
 		private void InitializePlayer()
 		{
-			int column = 0;
-			int row = 0;
+			var column = 0;
+			var row = 0;
 
 			if (Map.Rooms.Any())
 			{

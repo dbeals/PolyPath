@@ -24,7 +24,9 @@
 // 
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
-namespace ExampleAdventure.Core {
+
+namespace ExampleAdventure.Core
+{
 	public enum Direction
 	{
 		North,

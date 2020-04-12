@@ -193,8 +193,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
 		/// </returns>
-		private static bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset) =>
-			currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y && currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y;
+		private static bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset) => currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y && currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y;
 
 		/// <summary>
 		///     Determines whether or not three points are diagonally next to each other.
@@ -291,7 +290,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if any of the points are at the point; otherwise, <c>false</c>.
 		/// </returns>
-		private bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, Point point) => AnyNodeIsAtPoint(nodes, point.X, point.Y);
+		private static bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, Point point) => AnyNodeIsAtPoint(nodes, point.X, point.Y);
 
 		/// <summary>
 		///     Determines if any of the specified nodes are at the point.
@@ -302,10 +301,7 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if any of the points are at the point; otherwise, <c>false</c>.
 		/// </returns>
-		private bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, int column, int row)
-		{
-			return nodes.Any(node => node.Position.X == column && node.Position.Y == row);
-		}
+		private static bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, int column, int row) => nodes.Any(node => node.Position.X == column && node.Position.Y == row);
 
 		/// <summary>
 		///     Processes the node.
@@ -315,6 +311,7 @@ namespace PolyPath
 		/// <param name="rowOffset">The row offset.</param>
 		/// <param name="openNodes">The list of open nodes that will be added to as nodes are processed.</param>
 		/// <param name="closedNodes">The closed nodes.</param>
+		/// <param name="endPosition">The end position.</param>
 		/// <param name="userData">The user data.</param>
 		/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
 		private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, Point endPosition, FindPathData userData)

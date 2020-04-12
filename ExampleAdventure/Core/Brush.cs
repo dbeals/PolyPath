@@ -37,7 +37,9 @@ namespace ExampleAdventure.Core
 		public Color Color { get; set; }
 		#endregion
 
+		#region Constructors
 		public Brush(Color color) => Color = color;
+		#endregion
 
 		#region Methods
 		public void Draw(Renderer renderer, Rectangle bounds)
@@ -55,18 +57,24 @@ namespace ExampleAdventure.Core
 
 	public class BrushSet
 	{
+		#region Variables
 		private readonly Dictionary<Material, Brush> _brushes = new Dictionary<Material, Brush>();
+		#endregion
 
+		#region Properties
 		public Brush this[Material material]
 		{
 			get => _brushes[material];
 			set => _brushes[material] = value;
 		}
+		#endregion
 
+		#region Methods
 		public void Draw(Renderer renderer, Rectangle bounds, Material material)
 		{
 			var brush = this[material];
 			brush.Draw(renderer, bounds);
 		}
+		#endregion
 	}
 }

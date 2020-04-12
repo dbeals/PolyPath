@@ -214,13 +214,13 @@ namespace PolyPath
 		/// <returns>
 		///     <c>true</c> if testX/testY is inside of the points; otherwise, <c>false</c>.
 		/// </returns>
-		private static bool IsPointInsidePolygon(Point[] points, int testX, int testY)
+		private static bool IsPointInsidePolygon(IReadOnlyList<Point> points, int testX, int testY)
 		{
 			var counter = 0;
 			var point1 = points[0];
-			for (var index = 1; index <= points.Length; ++index)
+			for (var index = 1; index <= points.Count; ++index)
 			{
-				var point2 = points[index % points.Length];
+				var point2 = points[index % points.Count];
 				if (testY > Math.Min(point1.Y, point2.Y) &&
 					testY <= Math.Max(point1.Y, point2.Y) &&
 					testX <= Math.Max(point1.X, point2.X) &&

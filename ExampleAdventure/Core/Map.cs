@@ -26,8 +26,6 @@
 // ***********************************************************************/
 
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using PolyPath;
 
 namespace ExampleAdventure.Core
 {
@@ -60,7 +58,9 @@ namespace ExampleAdventure.Core
 			Height = height;
 			_nodes = new MapNode[width * height];
 		}
+		#endregion
 
+		#region Methods
 		public Room GetRoomAt(int column, int row)
 		{
 			foreach (var room in Rooms)
