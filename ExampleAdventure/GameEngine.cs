@@ -296,7 +296,7 @@ namespace ExampleAdventure
 			{
 				var waypointBounds = GetColumnRowPixelBounds((int) waypoint.X, (int) waypoint.Y);
 				waypointBounds = new Rectangle(waypointBounds.X + 4, waypointBounds.Y + 4, waypointBounds.Width - 8, waypointBounds.Height - 8);
-				Renderer.FillRectangle(waypointBounds, Color.Red);
+				Renderer.FillRectangle(waypointBounds, Color.Yellow);
 			}
 		}
 
