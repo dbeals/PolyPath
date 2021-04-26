@@ -180,8 +180,8 @@ namespace ExampleAdventure.Core
 
 			if ((random.Next() + 10) % 2 == 0)
 			{
-				var waterColumn = random.Next(room.Column + 2, room.Column + room.Width - 2);
-				var waterRow = random.Next(room.Row + 2, room.Row + room.Height - 2);
+				var waterColumn = random.Next(room.Bounds.Left + 2, room.Bounds.Right - 2);
+				var waterRow = random.Next(room.Bounds.Top + 2, room.Bounds.Bottom - 2);
 				var useWaterPoint = true;
 				foreach (var doorway in room.Doorways)
 				{
@@ -220,7 +220,6 @@ namespace ExampleAdventure.Core
 					room.WaterPoint = new Point(waterColumn, waterRow);
 			}
 
-			//ConnectRooms(random, initialRoom, room, direction);
 			map.Rooms.Add(room);
 			return room;
 		}
