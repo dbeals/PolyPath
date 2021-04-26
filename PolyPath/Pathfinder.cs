@@ -144,6 +144,8 @@ namespace PolyPath
 		/// <returns>A list of points defining the found path.</returns>
 		public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData)
 		{
+			userData.StartPosition = startPosition;
+			userData.EndPosition = endPosition;
 			var pathPoints = FindPath(startPosition, endPosition, out var depth, userData);
 			if (!pathPoints.Any())
 				return new Path();
