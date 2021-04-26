@@ -314,30 +314,38 @@ namespace ExampleAdventure
 
 		private void InitializeGame(bool custom)
 		{
-			Map = MapGenerator.GenerateMap(Rng, GraphicsDevice.Viewport.Width / TileWidth, GraphicsDevice.Viewport.Height / TileHeight, custom ? 0 : 100);
-
-			Brushes = new BrushSet
+			while(true)
 			{
-				[Material.None] = new Brush(Color.Black),
-				[Material.Dirt] = new Brush(Color.SaddleBrown),
-				[Material.Grass] = new Brush(Color.LawnGreen),
-				[Material.Gravel] = new Brush(Color.DarkGray),
-				[Material.Water] = new Brush(Color.Aqua),
-				[Material.Wall] = new Brush(Color.SlateGray)
-			};
+				Map = MapGenerator.GenerateMap(Rng, GraphicsDevice.Viewport.Width / TileWidth, GraphicsDevice.Viewport.Height / TileHeight, custom ? 0 : 100);
+				if (Map.Rooms.Count == 1)
+					continue; // Only 1 room generated, we can do better.
 
-			Entities.Clear();
-			InitializePlayer();
+				Brushes = new BrushSet
+				{
+					[Material.None] = new Brush(Color.Black),
+					[Material.Dirt] = new Brush(Color.SaddleBrown),
+					[Material.Grass] = new Brush(Color.LawnGreen),
+					[Material.Gravel] = new Brush(Color.DarkGray),
+					[Material.Water] = new Brush(Color.Aqua),
+					[Material.Wall] = new Brush(Color.SlateGray)
+				};
 
-			var numberOfRats = Rng.Next(1, Map.Rooms.Count);
-			for (var ratIndex = 0; ratIndex < numberOfRats; ++ratIndex)
-				InitializeRat();
+				Entities.Clear();
+				if (!InitializePlayer())
+					continue; // We failed to place the player, try regenerating.
+
+				var numberOfRats = Rng.Next(1, Map.Rooms.Count);
+				for (var ratIndex = 0; ratIndex < numberOfRats; ++ratIndex)
+					InitializeRat();
+				break;
+			}
 		}
 
-		private void InitializePlayer()
+		private bool InitializePlayer()
 		{
 			var column = 0;
 			var row = 0;
+			var tryCount = 0;
 
 			if (Map.Rooms.Any())
 			{
@@ -349,6 +357,10 @@ namespace ExampleAdventure
 				{
 					column = Rng.Next(room.Bounds.Left + 1, room.Bounds.Right - 1);
 					row = Rng.Next(room.Bounds.Top + 1, room.Bounds.Bottom - 1);
+
+					++tryCount;
+					if (tryCount >= 15)
+						return false; // We failed to place it 15 times, give up.
 				}
 			}
 
@@ -359,12 +371,14 @@ namespace ExampleAdventure
 				IsPlayer = true
 			};
 			Entities.Add(Player);
+			return true;
 		}
 
-		private void InitializeRat()
+		private bool InitializeRat()
 		{
 			var column = 0;
 			var row = 0;
+			var tryCount = 0;
 
 			if (Map.Rooms.Any())
 			{
@@ -376,16 +390,19 @@ namespace ExampleAdventure
 				{
 					column = Rng.Next(room.Bounds.Left + 2, room.Bounds.Right - 2);
 					row = Rng.Next(room.Bounds.Top + 2, room.Bounds.Bottom - 2);
+					++tryCount;
+					if (tryCount >= 15)
+						return false; // We failed to place it 15 times, give up.
 				}
 			}
 
-			var rat = new Entity
+			Entities.Add(new Entity
 			{
 				Column = column,
 				Row = row,
 				IsPlayer = false
-			};
-			Entities.Add(rat);
+			});
+			return true;
 		}
 		#endregion
 
