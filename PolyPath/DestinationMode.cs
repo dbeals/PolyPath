@@ -1,11 +1,11 @@
-﻿// /***********************************************************************
+// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
-//
+// 
 // Anyone is free to copy, modify, publish, use, compile, sell, or
 // distribute this software, either in source code form or as a compiled
 // binary, for any purpose, commercial or non-commercial, and by any
 // means.
-//
+// 
 // In jurisdictions that recognize copyright laws, the author or authors
 // of this software dedicate any and all copyright interest in the
 // software to the public domain. We make this dedication for the benefit
@@ -13,7 +13,7 @@
 // successors. We intend this dedication to be an overt act of
 // relinquishment in perpetuity of all present and future rights to this
 // software under copyright law.
-//
+// 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -21,40 +21,27 @@
 // OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-//
+// 
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using Microsoft.Xna.Framework;
-
 namespace PolyPath
 {
-	public class FindPathData
+	public enum DestinationMode
 	{
-		#region Properties
-		public bool PopFirstWaypoint { get; set; }
-		public int PopLastNWaypoints { get; set; }
-		public DestinationMode DestinationMode { get; set; }
-		public Point StartPosition { get; set; }
-		public Point EndPosition { get; set; }
-		#endregion
-
-		#region Methods
 		/// <summary>
-		///     Pops the waypoint test.
+		/// The pathfinder should find a path to the exact point provided.
 		/// </summary>
-		/// <param name="waypointPosition">The waypoint position.</param>
-		/// <param name="index">The zero-based index of the waypoint in the path.</param>
-		/// <returns><c>true</c> if the waypoint should be popped; <c>false</c> otherwise.</returns>
-		public virtual bool PopWaypointTest(Point waypointPosition, int index) => false;
+		Exact,
 
 		/// <summary>
-		///     Gets the weight.
+		/// The pathfinder should find a path to the cardinal (north, south, east, or west) neighbor of the point provided.
 		/// </summary>
-		/// <param name="nodePosition">The waypoint position.</param>
-		/// <param name="endPosition">The end position.</param>
-		/// <returns>The numeric weight of the node at the position.</returns>
-		public virtual int GetWeight(Point nodePosition, Point endPosition) => 1;
-		#endregion
+		CardinalNeighbor,
+
+		/// <summary>
+		/// The pathfinder should find a path to the cardinal or intercardinal neighbor of the point provided.
+		/// </summary>
+		AnyNeighbor
 	}
 }

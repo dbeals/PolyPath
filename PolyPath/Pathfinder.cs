@@ -83,6 +83,8 @@ namespace PolyPath
 				new PathTreeNode(startPosition, null, 0)
 			};
 
+			var destinationPoints = GetDestinationPoints(endPosition, userData);
+
 			while (true)
 			{
 				if (openNodes.Count == 0)
@@ -97,7 +99,7 @@ namespace PolyPath
 				var currentPosition = currentNode.Position;
 				if (!closedNodes.Contains(currentNode))
 				{
-					if (currentPosition == endPosition)
+					if ((destinationPoints != null && destinationPoints.Any(x => x == currentPosition)) || currentPosition == endPosition)
 						return CreatePath(currentNode, out depth, userData);
 
 					var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, endPosition, userData);
@@ -160,6 +162,49 @@ namespace PolyPath
 			}
 
 			return output;
+		}
+
+		/// <summary>
+		/// Calculates the neighbors of a specific point based on the DestinationMode property of <paramref name="userData"/>.
+		/// </summary>
+		/// <param name="endPosition">The destination point.</param>
+		/// <param name="userData">The data provided by the user.</param>
+		/// <returns>Null if the DestinationMode property of <paramref name="userData"/> is <see cref="DestinationMode.Exact"/>, otherwise an array of neighbor points.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If userData.DestinationMode is not a valid <see cref="DestinationMode"/> value.</exception>
+		private static Point[] GetDestinationPoints(Point endPosition, FindPathData userData)
+		{
+			switch (userData.DestinationMode)
+			{
+				case DestinationMode.Exact: return null;
+
+				case DestinationMode.CardinalNeighbor:
+				{
+					return new[]
+					{
+						new Point(endPosition.X - 1, endPosition.Y),
+						new Point(endPosition.X, endPosition.Y - 1),
+						new Point(endPosition.X + 1, endPosition.Y),
+						new Point(endPosition.X, endPosition.Y + 1)
+					};
+				}
+
+				case DestinationMode.AnyNeighbor:
+				{
+					return new[]
+					{
+						new Point(endPosition.X - 1, endPosition.Y),
+						new Point(endPosition.X - 1, endPosition.Y - 1),
+						new Point(endPosition.X, endPosition.Y - 1),
+						new Point(endPosition.X + 1, endPosition.Y - 1),
+						new Point(endPosition.X + 1, endPosition.Y),
+						new Point(endPosition.X + 1, endPosition.Y + 1),
+						new Point(endPosition.X, endPosition.Y + 1),
+						new Point(endPosition.X - 1, endPosition.Y + 1)
+					};
+				}
+
+				default: throw new ArgumentOutOfRangeException();
+			}
 		}
 
 		/// <summary>
