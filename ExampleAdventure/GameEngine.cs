@@ -205,9 +205,9 @@ namespace ExampleAdventure
 						}
 					};
 
-					var allowNeighbor = Map.IsPassable(column, row) == false || Entities.Any(entity => entity.Column == column && entity.Row == row);
-					var pathPoints = pathfinder.FindPath(Player.Column, Player.Row, column, row, out var depth, new PathfinderUserData(Map, Player){
-						DestinationMode = allowNeighbor ? DestinationMode.AnyNeighbor : DestinationMode.Exact
+					var pathPoints = pathfinder.FindPath(Player.Column, Player.Row, column, row, out var depth, new PathfinderUserData(Map, Entities, Player)
+					{
+						DestinationModeFlags = DestinationModeFlags.All
 					});
 					var path = new Path
 					{

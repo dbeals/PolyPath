@@ -66,7 +66,7 @@ The system iterates backward over the points in the original path and offers the
 
 This process is done before any other trimming or popping is done.
 
-As a side note - this is currently our recommended method for pathing to an object/character. Pathfinder.CheckNode would check node bounds against all objects except for the player and their target (if you check the target then you won't get a path as the node is blocked.) Then PopWaypointTest() will check nodes against the target's bounds. This will cause the system to path to the target and then trim the path to the closest node outside of their collision box.
+An example usage for this is pathing to an object/character. Pathfinder.CheckNode would check node bounds against all objects except for the player and their target (if you check the target then you won't get a path as the node is blocked.) Then PopWaypointTest() will check nodes against the target's bounds. This will cause the system to path to the target and then trim the path to the closest node outside of their collision box.
 
 **PopFirstWaypoint**
 
@@ -79,6 +79,18 @@ The first node is popped BEFORE trimming is done.
 PopLastNWaypoints is meant to be used when moving an object to another object. Instead of trying to move them to a certain point within a range of the target object, simply have the system pop the last 2 or 3 waypoints off (depending on the size of the grid you're using; with our current project we're using 16 pixel nodes and popping 2 still seemed too close, so we pop 3.)
 
 The nodes are popped BEFORE trimming is done.
+
+**DestinationModeFlags**
+
+DestinationModeFlags is used to determine how the pathfinder handles the destination. The default value is DestinationModeFlags.All, meaning that the pathfinder will try to navigate to the destination, but if it fails on CheckNode then it will fall back to the neighbor with the shortest path.
+
+**StartPosition**
+
+The start position provided to FindPath(). FindPath() populates this so that PopWayPointTest(), CheckNode(), etc. have access to the start position if needed.
+
+**EndPosition**
+
+The end position provided to FindPath(). FindPath() populates this so that PopWayPointTest(), CheckNode(), etc. have access to the end position if needed.
 
 **GetWeight**
 

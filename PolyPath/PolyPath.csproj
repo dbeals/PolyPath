@@ -48,7 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DestinationMode.cs" />
+    <Compile Include="DestinationModeFlags.cs" />
     <Compile Include="FindPathData.cs" />
     <Compile Include="Path.cs" />
     <Compile Include="Pathfinder.cs" />

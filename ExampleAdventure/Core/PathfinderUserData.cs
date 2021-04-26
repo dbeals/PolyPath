@@ -26,6 +26,8 @@
 // ***********************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using PolyPath;
 
@@ -35,13 +37,15 @@ namespace ExampleAdventure.Core
 	{
 		#region Properties
 		public Map Map { get; set; }
+		public List<Entity> Entities { get; set; }
 		public Entity Entity { get; set; }
 		#endregion
 
 		#region Constructors
-		public PathfinderUserData(Map map, Entity entity)
+		public PathfinderUserData(Map map, List<Entity> entities, Entity entity)
 		{
 			Map = map;
+			Entities = entities;
 			Entity = entity;
 		}
 		#endregion

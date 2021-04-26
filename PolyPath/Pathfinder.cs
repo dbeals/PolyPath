@@ -78,6 +78,7 @@ namespace PolyPath
 			userData.StartPosition = startPosition;
 			userData.EndPosition = endPosition;
 			var closedNodes = new List<PathTreeNode>();
+			var possibleNodes = new List<PathTreeNode>();
 			var openNodes = new List<PathTreeNode>
 			{
 				new PathTreeNode(startPosition, null, 0)
@@ -89,6 +90,9 @@ namespace PolyPath
 			{
 				if (openNodes.Count == 0)
 				{
+					if (possibleNodes.Any())
+						return CreatePath(possibleNodes.First(), out depth, userData);
+
 					depth = 0;
 					return Array.Empty<Point>();
 				}
@@ -99,8 +103,15 @@ namespace PolyPath
 				var currentPosition = currentNode.Position;
 				if (!closedNodes.Contains(currentNode))
 				{
-					if ((destinationPoints != null && destinationPoints.Any(x => x == currentPosition)) || currentPosition == endPosition)
+					if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact) && currentPosition == endPosition)
 						return CreatePath(currentNode, out depth, userData);
+					
+					if (destinationPoints != null && destinationPoints.Any(x => x == currentPosition))
+					{
+						if (!userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact))
+							return CreatePath(currentNode, out depth, userData);
+						possibleNodes.Add(currentNode);
+					}
 
 					var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, endPosition, userData);
 					var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, endPosition, userData);
@@ -169,42 +180,31 @@ namespace PolyPath
 		/// </summary>
 		/// <param name="endPosition">The destination point.</param>
 		/// <param name="userData">The data provided by the user.</param>
-		/// <returns>Null if the DestinationMode property of <paramref name="userData"/> is <see cref="DestinationMode.Exact"/>, otherwise an array of neighbor points.</returns>
-		/// <exception cref="ArgumentOutOfRangeException">If userData.DestinationMode is not a valid <see cref="DestinationMode"/> value.</exception>
+		/// <returns>Null if the DestinationMode property of <paramref name="userData"/> is <see cref="DestinationModeFlags.Exact"/>, otherwise an array of neighbor points.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If userData.DestinationMode is not a valid <see cref="DestinationModeFlags"/> value.</exception>
 		private static Point[] GetDestinationPoints(Point endPosition, FindPathData userData)
 		{
-			switch (userData.DestinationMode)
+			if (userData.DestinationModeFlags == DestinationModeFlags.Exact)
+				return null;
+
+			var output = new List<Point>(8);
+			if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.CardinalNeighbor))
 			{
-				case DestinationMode.Exact: return null;
-
-				case DestinationMode.CardinalNeighbor:
-				{
-					return new[]
-					{
-						new Point(endPosition.X - 1, endPosition.Y),
-						new Point(endPosition.X, endPosition.Y - 1),
-						new Point(endPosition.X + 1, endPosition.Y),
-						new Point(endPosition.X, endPosition.Y + 1)
-					};
-				}
-
-				case DestinationMode.AnyNeighbor:
-				{
-					return new[]
-					{
-						new Point(endPosition.X - 1, endPosition.Y),
-						new Point(endPosition.X - 1, endPosition.Y - 1),
-						new Point(endPosition.X, endPosition.Y - 1),
-						new Point(endPosition.X + 1, endPosition.Y - 1),
-						new Point(endPosition.X + 1, endPosition.Y),
-						new Point(endPosition.X + 1, endPosition.Y + 1),
-						new Point(endPosition.X, endPosition.Y + 1),
-						new Point(endPosition.X - 1, endPosition.Y + 1)
-					};
-				}
-
-				default: throw new ArgumentOutOfRangeException();
+				output.Add(new Point(endPosition.X - 1, endPosition.Y));
+				output.Add(new Point(endPosition.X, endPosition.Y - 1));
+				output.Add(new Point(endPosition.X + 1, endPosition.Y));
+				output.Add(new Point(endPosition.X, endPosition.Y + 1));
 			}
+
+			if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.IntercardinalNeighbor))
+			{
+				output.Add(new Point(endPosition.X - 1, endPosition.Y - 1));
+				output.Add(new Point(endPosition.X + 1, endPosition.Y - 1));
+				output.Add(new Point(endPosition.X + 1, endPosition.Y + 1));
+				output.Add(new Point(endPosition.X - 1, endPosition.Y + 1));
+			}
+
+			return output.Count == 0 ? null : output.ToArray();
 		}
 
 		/// <summary>

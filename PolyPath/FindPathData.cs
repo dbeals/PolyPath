@@ -34,9 +34,9 @@ namespace PolyPath
 		#region Properties
 		public bool PopFirstWaypoint { get; set; }
 		public int PopLastNWaypoints { get; set; }
-		public DestinationMode DestinationMode { get; set; }
-		public Point StartPosition { get; set; }
-		public Point EndPosition { get; set; }
+		public DestinationModeFlags DestinationModeFlags { get; set; } = DestinationModeFlags.All;
+		public Point StartPosition { get; internal set; }
+		public Point EndPosition { get; internal set; }
 		#endregion
 
 		#region Methods
