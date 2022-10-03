@@ -27,55 +27,55 @@
 
 using Microsoft.Xna.Framework;
 
-namespace PolyPath
+namespace PolyPath;
+
+internal sealed class PathTreeNode
 {
-	internal sealed class PathTreeNode
+	#region Variables
+	private Point _position;
+	#endregion
+
+	#region Properties
+	public bool IsInvalid => Column == -1 && Row == -1;
+
+	public int Column
 	{
-		#region Variables
-		private Point _position;
-		#endregion
-
-		#region Properties
-		public Point Position
-		{
-			get => _position;
-			set => _position = value;
-		}
-
-		public int Column
-		{
-			get => _position.X;
-			set => _position.X = value;
-		}
-
-		public int Row
-		{
-			get => _position.Y;
-			set => _position.Y = value;
-		}
-
-		public bool IsInvalid => Column == -1 && Row == -1;
-
-		public PathTreeNode Parent { get; set; }
-		public int Weight { get; set; }
-		#endregion
-
-		#region Constructors
-		public PathTreeNode() { }
-
-		public PathTreeNode(Point position, PathTreeNode parent, int weight)
-		{
-			Position = position;
-			Parent = parent;
-			Weight = weight;
-		}
-
-		public PathTreeNode(int column, int row, PathTreeNode parent, int weight)
-			: this(new Point(column, row), parent, weight) { }
-		#endregion
-
-		#region Methods
-		public override string ToString() => $"X:{Position.X} Y:{Position.Y} Weight:{Weight} Parent:{(Parent == null ? "null" : "PathTreeNode")}";
-		#endregion
+		get => _position.X;
+		set => _position.X = value;
 	}
+
+	public PathTreeNode Parent { get; set; }
+
+	public Point Position
+	{
+		get => _position;
+		set => _position = value;
+	}
+
+	public int Row
+	{
+		get => _position.Y;
+		set => _position.Y = value;
+	}
+
+	public int Weight { get; set; }
+	#endregion
+
+	#region Constructors
+	public PathTreeNode() { }
+
+	public PathTreeNode(Point position, PathTreeNode parent, int weight)
+	{
+		Position = position;
+		Parent = parent;
+		Weight = weight;
+	}
+
+	public PathTreeNode(int column, int row, PathTreeNode parent, int weight)
+		: this(new Point(column, row), parent, weight) { }
+	#endregion
+
+	#region Methods
+	public override string ToString() => $"X:{Position.X} Y:{Position.Y} Weight:{Weight} Parent:{(Parent == null ? "null" : "PathTreeNode")}";
+	#endregion
 }

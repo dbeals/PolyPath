@@ -29,52 +29,51 @@ using System.Collections.Generic;
 using ExamplesCore.Graphics;
 using Microsoft.Xna.Framework;
 
-namespace ExampleAdventure.Core
+namespace ExampleAdventure.Core;
+
+public class Brush
 {
-	public class Brush
+	#region Properties
+	public Color Color { get; set; }
+	#endregion
+
+	#region Constructors
+	public Brush(Color color) => Color = color;
+	#endregion
+
+	#region Methods
+	public void Draw(Renderer renderer, Rectangle bounds)
 	{
-		#region Properties
-		public Color Color { get; set; }
-		#endregion
-
-		#region Constructors
-		public Brush(Color color) => Color = color;
-		#endregion
-
-		#region Methods
-		public void Draw(Renderer renderer, Rectangle bounds)
-		{
-			renderer.FillRectangle(bounds, Color);
-		}
-
-		public void DrawBounds(Renderer renderer, Rectangle bounds, Color? overrideColor = null)
-		{
-			var color = overrideColor ?? Color.FromNonPremultiplied(0, 0, 0, 64);
-			renderer.DrawRectangle(bounds, color);
-		}
-		#endregion
+		renderer.FillRectangle(bounds, Color);
 	}
 
-	public class BrushSet
+	public void DrawBounds(Renderer renderer, Rectangle bounds, Color? overrideColor = null)
 	{
-		#region Variables
-		private readonly Dictionary<Material, Brush> _brushes = new Dictionary<Material, Brush>();
-		#endregion
-
-		#region Properties
-		public Brush this[Material material]
-		{
-			get => _brushes[material];
-			set => _brushes[material] = value;
-		}
-		#endregion
-
-		#region Methods
-		public void Draw(Renderer renderer, Rectangle bounds, Material material)
-		{
-			var brush = this[material];
-			brush.Draw(renderer, bounds);
-		}
-		#endregion
+		var color = overrideColor ?? Color.FromNonPremultiplied(0, 0, 0, 64);
+		renderer.DrawRectangle(bounds, color);
 	}
+	#endregion
+}
+
+public class BrushSet
+{
+	#region Variables
+	private readonly Dictionary<Material, Brush> _brushes = new ();
+	#endregion
+
+	#region Properties
+	public Brush this[Material material]
+	{
+		get => _brushes[material];
+		set => _brushes[material] = value;
+	}
+	#endregion
+
+	#region Methods
+	public void Draw(Renderer renderer, Rectangle bounds, Material material)
+	{
+		var brush = this[material];
+		brush.Draw(renderer, bounds);
+	}
+	#endregion
 }

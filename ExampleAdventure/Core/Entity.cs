@@ -27,40 +27,39 @@
 
 using PolyPath;
 
-namespace ExampleAdventure.Core
+namespace ExampleAdventure.Core;
+
+public class Entity
 {
-	public class Entity
+	#region Variables
+	private readonly float _moveDelay = 0.25f;
+	private float _moveTimeElapsed;
+	#endregion
+
+	#region Properties
+	public int Column { get; set; }
+	public bool IsPlayer { get; set; }
+	public Path Path { get; set; } = new ();
+	public int Row { get; set; }
+	#endregion
+
+	#region Methods
+	public void Update(float delta)
 	{
-		#region Variables
-		private float _moveTimeElapsed;
-		private readonly float _moveDelay = 0.25f;
-		#endregion
-
-		#region Properties
-		public int Column { get; set; }
-		public int Row { get; set; }
-		public Path Path { get; set; } = new Path();
-		public bool IsPlayer { get; set; }
-		#endregion
-
-		#region Methods
-		public void Update(float delta)
+		if (Path.NextWaypoint != null)
 		{
-			if (Path.NextWaypoint != null)
+			_moveTimeElapsed += delta;
+			if (_moveTimeElapsed >= _moveDelay)
 			{
-				_moveTimeElapsed += delta;
-				if (_moveTimeElapsed >= _moveDelay)
-				{
-					var target = Path.NextWaypoint.Value;
-					Column = (int) target.X;
-					Row = (int) target.Y;
-					Path.PopWaypoint();
-					_moveTimeElapsed = 0f;
-				}
-			}
-			else
+				var target = Path.NextWaypoint.Value;
+				Column = (int)target.X;
+				Row = (int)target.Y;
+				Path.PopWaypoint();
 				_moveTimeElapsed = 0f;
+			}
 		}
-		#endregion
+		else
+			_moveTimeElapsed = 0f;
 	}
+	#endregion
 }

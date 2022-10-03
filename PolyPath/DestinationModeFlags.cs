@@ -27,27 +27,27 @@
 
 using System;
 
-namespace PolyPath
+namespace PolyPath;
+
+[Flags]
+public enum DestinationModeFlags
 {
-	[Flags]
-	public enum DestinationModeFlags
-	{
-		/// <summary>
-		/// The pathfinder should find a path to the exact point provided.
-		/// </summary>
-		Exact = 1,
+	/// <summary>
+	///     The pathfinder should find a path to the exact point provided.
+	/// </summary>
+	Exact = 1,
 
-		/// <summary>
-		/// The pathfinder should find a path to the cardinal (north, south, east, or west) neighbor of the point provided.
-		/// </summary>
-		CardinalNeighbor = 2,
+	/// <summary>
+	///     The pathfinder should find a path to the cardinal (north, south, east, or west) neighbor of the point provided.
+	/// </summary>
+	CardinalNeighbor = 2,
 
-		/// <summary>
-		/// The pathfinder should find a path to the intercardinal neighbor (northwest, northeast, southwest, sotuheast) of the point provided.
-		/// </summary>
-		IntercardinalNeighbor = 4,
+	/// <summary>
+	///     The pathfinder should find a path to the intercardinal neighbor (northwest, northeast, southwest, sotuheast) of the
+	///     point provided.
+	/// </summary>
+	IntercardinalNeighbor = 4,
 
-		AnyNeighbor = CardinalNeighbor | IntercardinalNeighbor,
-		All = Exact | CardinalNeighbor | IntercardinalNeighbor
-	}
+	AnyNeighbor = CardinalNeighbor | IntercardinalNeighbor,
+	All = Exact | CardinalNeighbor | IntercardinalNeighbor
 }
