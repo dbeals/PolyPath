@@ -67,6 +67,8 @@ public static class MapGenerator
 		if (map.Rooms.Any(room1 => room.Bounds.Intersects(room1.Bounds)))
 			return null;
 
+		MoveRoomToSimplifySeparatingWall(direction, room);
+
 		if ((random.Next() + 10) % 2 == 0)
 		{
 			var waterColumn = random.Next(room.Bounds.Left + 2, room.Bounds.Right - 2);
@@ -111,6 +113,36 @@ public static class MapGenerator
 
 		map.Rooms.Add(room);
 		return room;
+	}
+
+	private static void MoveRoomToSimplifySeparatingWall(Direction direction, Room room)
+	{
+		// Here we will slide the room 1 tile toward the previous room.
+		// This way the wall between those two rooms will be 1 tile instead of 2.
+		switch (direction)
+		{
+			case Direction.North:
+			{
+				++room.Row;
+				break;
+			}
+			case Direction.East:
+			{
+				--room.Column;
+				break;
+			}
+			case Direction.South:
+			{
+				--room.Row;
+				break;
+			}
+			case Direction.West:
+			{
+				++room.Column;
+				break;
+			}
+			default: throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+		}
 	}
 
 	private static void ApplyRoom(Map map, Room room)
