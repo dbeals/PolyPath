@@ -13,6 +13,12 @@
 	<ItemGroup>
 		<None Remove="Icon.ico"/>
 		<None Remove="Icon.bmp"/>
+		<None Update="Content\Characters.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Content\Tiles.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="Icon.ico"/>

@@ -50,7 +50,11 @@ public abstract class GameEngineBase : Game
 	#region Constructors
 	protected GameEngineBase()
 	{
-		Graphics = new GraphicsDeviceManager(this);
+		Graphics = new GraphicsDeviceManager(this)
+		{
+			PreferredBackBufferWidth = 1280,
+			PreferredBackBufferHeight = 720
+		};
 		Content.RootDirectory = "Content";
 
 		Manager.KeyStateChanged += OnKeyStateChanged;

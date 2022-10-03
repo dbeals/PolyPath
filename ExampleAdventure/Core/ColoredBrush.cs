@@ -1,4 +1,4 @@
-﻿// /***********************************************************************
+// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
 //
 // Anyone is free to copy, modify, publish, use, compile, sell, or
@@ -25,42 +25,31 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using PolyPath;
+using ExamplesCore.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace ExampleAdventure.Core;
 
-public class Entity
+public class ColoredBrush : BrushBase
 {
-	#region Variables
-	private readonly float _moveDelay = 0.25f;
-	private float _moveTimeElapsed;
+	#region Properties
+	public Color Color { get; set; }
 	#endregion
 
-	#region Properties
-	public string CharacterClass { get; set; }
-	public int Column { get; set; }
-	public bool IsPlayer { get; set; }
-	public WaypointPath Path { get; set; } = new ();
-	public int Row { get; set; }
+	#region Constructors
+	public ColoredBrush(Color color) => Color = color;
 	#endregion
 
 	#region Methods
-	public void Update(float delta)
+	public override void Draw(Renderer renderer, Rectangle bounds)
 	{
-		if (Path.NextWaypoint != null)
-		{
-			_moveTimeElapsed += delta;
-			if (_moveTimeElapsed >= _moveDelay)
-			{
-				var target = Path.NextWaypoint.Value;
-				Column = (int)target.X;
-				Row = (int)target.Y;
-				Path.PopWaypoint();
-				_moveTimeElapsed = 0f;
-			}
-		}
-		else
-			_moveTimeElapsed = 0f;
+		renderer.FillRectangle(bounds, Color);
+	}
+
+	public override void DrawBounds(Renderer renderer, Rectangle bounds, Color? overrideColor = null)
+	{
+		var color = overrideColor ?? Color.FromNonPremultiplied(0, 0, 0, 64);
+		renderer.DrawRectangle(bounds, color);
 	}
 	#endregion
 }

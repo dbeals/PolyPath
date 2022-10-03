@@ -25,55 +25,32 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using System.Collections.Generic;
-using ExamplesCore.Graphics;
+using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace ExampleAdventure.Core;
 
-public class Brush
+public class TileSetInfo
 {
 	#region Properties
-	public Color Color { get; set; }
-	#endregion
-
-	#region Constructors
-	public Brush(Color color) => Color = color;
-	#endregion
-
-	#region Methods
-	public void Draw(Renderer renderer, Rectangle bounds)
+	public Rectangle ParsedRegion
 	{
-		renderer.FillRectangle(bounds, Color);
+		get
+		{
+			var parts = Region.Split(',').Select(x => int.Parse(x.Trim())).ToArray();
+			return new Rectangle(parts[0], parts[1], parts[2], parts[3]);
+		}
 	}
 
-	public void DrawBounds(Renderer renderer, Rectangle bounds, Color? overrideColor = null)
+	public string Material
 	{
-		var color = overrideColor ?? Color.FromNonPremultiplied(0, 0, 0, 64);
-		renderer.DrawRectangle(bounds, color);
+		get => Name;
+		set => Name = value;
 	}
-	#endregion
-}
 
-public class BrushSet
-{
-	#region Variables
-	private readonly Dictionary<Material, Brush> _brushes = new ();
-	#endregion
+	public string Name { get; set; }
 
-	#region Properties
-	public Brush this[Material material]
-	{
-		get => _brushes[material];
-		set => _brushes[material] = value;
-	}
-	#endregion
-
-	#region Methods
-	public void Draw(Renderer renderer, Rectangle bounds, Material material)
-	{
-		var brush = this[material];
-		brush.Draw(renderer, bounds);
-	}
+	public string Region { get; set; }
+	public string Texture { get; set; }
 	#endregion
 }

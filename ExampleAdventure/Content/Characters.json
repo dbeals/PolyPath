@@ -1,0 +1,12 @@
+[
+	{
+		"Name": "Player",
+		"Texture": "Characters",
+		"Region": "16,0,16,16"
+	},
+	{
+		"Name": "Rat",
+		"Texture": "Characters",
+		"Region": "0,0,16,16"
+	}
+]

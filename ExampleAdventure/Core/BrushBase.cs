@@ -1,4 +1,4 @@
-﻿// /***********************************************************************
+// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
 //
 // Anyone is free to copy, modify, publish, use, compile, sell, or
@@ -25,42 +25,16 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using PolyPath;
+using ExamplesCore.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace ExampleAdventure.Core;
 
-public class Entity
+public abstract class BrushBase : IBrush
 {
-	#region Variables
-	private readonly float _moveDelay = 0.25f;
-	private float _moveTimeElapsed;
-	#endregion
-
-	#region Properties
-	public string CharacterClass { get; set; }
-	public int Column { get; set; }
-	public bool IsPlayer { get; set; }
-	public WaypointPath Path { get; set; } = new ();
-	public int Row { get; set; }
-	#endregion
-
 	#region Methods
-	public void Update(float delta)
-	{
-		if (Path.NextWaypoint != null)
-		{
-			_moveTimeElapsed += delta;
-			if (_moveTimeElapsed >= _moveDelay)
-			{
-				var target = Path.NextWaypoint.Value;
-				Column = (int)target.X;
-				Row = (int)target.Y;
-				Path.PopWaypoint();
-				_moveTimeElapsed = 0f;
-			}
-		}
-		else
-			_moveTimeElapsed = 0f;
-	}
+	public abstract void Draw(Renderer renderer, Rectangle bounds);
+
+	public virtual void DrawBounds(Renderer renderer, Rectangle bounds, Color? overrideColor = null) { }
 	#endregion
 }

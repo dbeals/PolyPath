@@ -27,12 +27,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using ExampleAdventure.Core;
 using ExampleAdventure.Extensions;
 using ExamplesCore;
 using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PolyPath;
 using PolyPath.Processors;
@@ -42,6 +45,7 @@ namespace ExampleAdventure;
 public class GameEngine : GameEngineBase
 {
 	#region Variables
+	private readonly Dictionary<string, IBrush> _characterBrushes = new ();
 	private bool _editorIsDragging;
 	private Material _editorMaterial = Material.None;
 	private bool _isEditMode;
@@ -67,10 +71,18 @@ public class GameEngine : GameEngineBase
 		Renderer.End();
 	}
 
+	protected override void Initialize()
+	{
+		base.Initialize();
+
+		Window.Title = "PolyPath - Example Adventure";
+	}
+
 	protected override void LoadContent()
 	{
 		base.LoadContent();
 
+		InitializeCharacterTiles();
 		InitializeGame(false);
 	}
 
@@ -121,8 +133,14 @@ public class GameEngine : GameEngineBase
 		DrawPath(entity.Path);
 
 		var pixelBounds = GetColumnRowPixelBounds(entity.Column, entity.Row);
-		pixelBounds = new Rectangle(pixelBounds.X + 4, pixelBounds.Y + 4, pixelBounds.Width - 8, pixelBounds.Height - 8);
-		Renderer.FillRectangle(pixelBounds, entity.IsPlayer ? Color.CornflowerBlue : Color.MonoGameOrange);
+
+		if (!_characterBrushes.TryGetValue(entity.CharacterClass, out var brush))
+		{
+			pixelBounds = new Rectangle(pixelBounds.X + 4, pixelBounds.Y + 4, pixelBounds.Width - 8, pixelBounds.Height - 8);
+			Renderer.FillRectangle(pixelBounds, entity.IsPlayer ? Color.CornflowerBlue : Color.MonoGameOrange);
+		}
+		else
+			brush.Draw(Renderer, pixelBounds);
 	}
 
 	private void DrawMap()
@@ -294,26 +312,51 @@ public class GameEngine : GameEngineBase
 		{
 			Depth = depth,
 			Waypoints = (pathfinder.PostProcessor ?? DirectPathPostProcessor.Instance).Process(pathPoints, null).ToArray()
-		};;
+		};
+		;
+	}
+
+	private void InitializeCharacterTiles()
+	{
+		_characterBrushes["Rat"] = new ColoredBrush(Color.MonoGameOrange);
+		_characterBrushes["Player"] = new ColoredBrush(Color.CornflowerBlue);
+
+		if (!File.Exists("Content/Characters.json"))
+			return;
+
+		var tileInfo = JsonSerializer.Deserialize<TileSetInfo[]>(File.ReadAllText("Content/Characters.json"));
+		if (tileInfo == null)
+			return;
+
+		foreach (var item in tileInfo)
+		{
+			var texture = Content.Load<Texture2D>(item.Texture);
+			_characterBrushes[item.Name] = new TileBrush(texture, item.ParsedRegion);
+		}
 	}
 
 	private void InitializeGame(bool custom)
 	{
+		var width = GraphicsDevice.Viewport.Width / TileWidth;
+		var height = GraphicsDevice.Viewport.Height / TileHeight;
+
 		while (true)
 		{
-			Map = MapGenerator.GenerateMap(Rng, GraphicsDevice.Viewport.Width / TileWidth, GraphicsDevice.Viewport.Height / TileHeight, custom ? 0 : 100);
+			Map = MapGenerator.GenerateMap(Rng, width, height, custom ? 0 : 100);
 			if (Map.Rooms.Count == 1)
 				continue; // Only 1 room generated, we can do better.
 
 			Brushes = new BrushSet
 			{
-				[Material.None] = new (Color.Black),
-				[Material.Dirt] = new (Color.SaddleBrown),
-				[Material.Grass] = new (Color.LawnGreen),
-				[Material.Gravel] = new (Color.DarkGray),
-				[Material.Water] = new (Color.Aqua),
-				[Material.Wall] = new (Color.SlateGray)
+				[Material.None] = new ColoredBrush(Color.Black),
+				[Material.Dirt] = new ColoredBrush(Color.SaddleBrown),
+				[Material.Grass] = new ColoredBrush(Color.LawnGreen),
+				[Material.Gravel] = new ColoredBrush(Color.DarkGray),
+				[Material.Water] = new ColoredBrush(Color.Aqua),
+				[Material.Wall] = new ColoredBrush(Color.SlateGray)
 			};
+
+			TryLoadTileSet();
 
 			Entities.Clear();
 			if (!InitializePlayer())
@@ -351,6 +394,7 @@ public class GameEngine : GameEngineBase
 
 		Player = new Entity
 		{
+			CharacterClass = "Player",
 			Column = column,
 			Row = row,
 			IsPlayer = true
@@ -383,6 +427,7 @@ public class GameEngine : GameEngineBase
 
 		Entities.Add(new Entity
 		{
+			CharacterClass = "Rat",
 			Column = column,
 			Row = row,
 			IsPlayer = false
@@ -397,6 +442,23 @@ public class GameEngine : GameEngineBase
 
 		var node = Map[column, row];
 		node.Material = material;
+	}
+
+	private void TryLoadTileSet()
+	{
+		if (!File.Exists("Content/Tiles.json"))
+			return;
+
+		var tileInfo = JsonSerializer.Deserialize<TileSetInfo[]>(File.ReadAllText("Content/Tiles.json"));
+		if (tileInfo == null)
+			return;
+
+		foreach (var item in tileInfo)
+		{
+			var material = Enum.Parse<Material>(item.Material);
+			var texture = Content.Load<Texture2D>(item.Texture);
+			Brushes[material] = new TileBrush(texture, item.ParsedRegion);
+		}
 	}
 	#endregion
 

@@ -1,0 +1,27 @@
+[
+	{
+		"Material": "Wall",
+		"Texture": "Tiles",
+		"Region": "0,0,16,16"
+	},
+	{
+		"Material": "Gravel",
+		"Texture": "Tiles",
+		"Region": "16,0,16,16"
+	},
+	{
+		"Material": "Water",
+		"Texture": "Tiles",
+		"Region": "32,0,16,16"
+	},
+	{
+		"Material": "Dirt",
+		"Texture": "Tiles",
+		"Region": "48,0,16,16"
+	},
+	{
+		"Material": "Grass",
+		"Texture": "Tiles",
+		"Region": "0,16,16,16"
+	}
+]

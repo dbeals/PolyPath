@@ -62,6 +62,11 @@ public sealed class Renderer
 		DrawLine(bounds.Left, bounds.Top, bounds.Left, bounds.Bottom, color);
 	}
 
+	public void DrawTextureRegion(Texture2D sourceTexture, Rectangle destinationRegion, Rectangle sourceRegion, Color color)
+	{
+		_spriteBatch.Draw(sourceTexture, destinationRegion, sourceRegion, color);
+	}
+
 	public void End()
 	{
 		_spriteBatch.End();

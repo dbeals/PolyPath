@@ -1,11 +1,11 @@
 ﻿// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
-//
+// 
 // Anyone is free to copy, modify, publish, use, compile, sell, or
 // distribute this software, either in source code form or as a compiled
 // binary, for any purpose, commercial or non-commercial, and by any
 // means.
-//
+// 
 // In jurisdictions that recognize copyright laws, the author or authors
 // of this software dedicate any and all copyright interest in the
 // software to the public domain. We make this dedication for the benefit
@@ -13,7 +13,7 @@
 // successors. We intend this dedication to be an overt act of
 // relinquishment in perpetuity of all present and future rights to this
 // software under copyright law.
-//
+// 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -21,46 +21,37 @@
 // OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-//
+// 
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using PolyPath;
+using ExamplesCore.Graphics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace ExampleAdventure.Core;
 
-public class Entity
+public class TileBrush : BrushBase
 {
-	#region Variables
-	private readonly float _moveDelay = 0.25f;
-	private float _moveTimeElapsed;
+	#region Properties
+	public Rectangle SourceRegion { get; set; }
+	public Texture2D Texture { get; set; }
 	#endregion
 
-	#region Properties
-	public string CharacterClass { get; set; }
-	public int Column { get; set; }
-	public bool IsPlayer { get; set; }
-	public WaypointPath Path { get; set; } = new ();
-	public int Row { get; set; }
+	#region Constructors
+	public TileBrush() { }
+
+	public TileBrush(Texture2D texture, Rectangle sourceRegion)
+	{
+		Texture = texture;
+		SourceRegion = sourceRegion;
+	}
 	#endregion
 
 	#region Methods
-	public void Update(float delta)
+	public override void Draw(Renderer renderer, Rectangle bounds)
 	{
-		if (Path.NextWaypoint != null)
-		{
-			_moveTimeElapsed += delta;
-			if (_moveTimeElapsed >= _moveDelay)
-			{
-				var target = Path.NextWaypoint.Value;
-				Column = (int)target.X;
-				Row = (int)target.Y;
-				Path.PopWaypoint();
-				_moveTimeElapsed = 0f;
-			}
-		}
-		else
-			_moveTimeElapsed = 0f;
+		renderer.DrawTextureRegion(Texture, bounds, SourceRegion, Color.White);
 	}
 	#endregion
 }

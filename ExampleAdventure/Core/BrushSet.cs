@@ -1,4 +1,4 @@
-﻿// /***********************************************************************
+// /***********************************************************************
 // This is free and unencumbered software released into the public domain.
 //
 // Anyone is free to copy, modify, publish, use, compile, sell, or
@@ -25,42 +25,31 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using PolyPath;
+using System.Collections.Generic;
+using ExamplesCore.Graphics;
+using Microsoft.Xna.Framework;
 
 namespace ExampleAdventure.Core;
 
-public class Entity
+public class BrushSet
 {
 	#region Variables
-	private readonly float _moveDelay = 0.25f;
-	private float _moveTimeElapsed;
+	private readonly Dictionary<Material, IBrush> _brushes = new ();
 	#endregion
 
 	#region Properties
-	public string CharacterClass { get; set; }
-	public int Column { get; set; }
-	public bool IsPlayer { get; set; }
-	public WaypointPath Path { get; set; } = new ();
-	public int Row { get; set; }
+	public IBrush this[Material material]
+	{
+		get => _brushes[material];
+		set => _brushes[material] = value;
+	}
 	#endregion
 
 	#region Methods
-	public void Update(float delta)
+	public void Draw(Renderer renderer, Rectangle bounds, Material material)
 	{
-		if (Path.NextWaypoint != null)
-		{
-			_moveTimeElapsed += delta;
-			if (_moveTimeElapsed >= _moveDelay)
-			{
-				var target = Path.NextWaypoint.Value;
-				Column = (int)target.X;
-				Row = (int)target.Y;
-				Path.PopWaypoint();
-				_moveTimeElapsed = 0f;
-			}
-		}
-		else
-			_moveTimeElapsed = 0f;
+		var brush = this[material];
+		brush.Draw(renderer, bounds);
 	}
 	#endregion
 }
