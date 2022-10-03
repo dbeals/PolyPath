@@ -39,7 +39,7 @@ public class Entity
 	#region Properties
 	public int Column { get; set; }
 	public bool IsPlayer { get; set; }
-	public Path Path { get; set; } = new ();
+	public WaypointPath Path { get; set; } = new ();
 	public int Row { get; set; }
 	#endregion
 

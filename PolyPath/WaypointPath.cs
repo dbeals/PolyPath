@@ -32,7 +32,7 @@ using Microsoft.Xna.Framework;
 
 namespace PolyPath;
 
-public sealed class Path
+public sealed class WaypointPath
 {
 	#region Variables
 	private List<Vector3> _waypoints = new ();
@@ -59,55 +59,37 @@ public sealed class Path
 	/// <param name="x">The x-axis value of the waypoint.</param>
 	/// <param name="y">The y-axis value of the waypoint.</param>
 	/// <param name="z">The z-axis value of the waypoint.</param>
-	public void AddWaypoint(float x, float y, float z)
-	{
-		AddWaypoint(new Vector3(x, y, z));
-	}
+	public void AddWaypoint(float x, float y, float z) => AddWaypoint(new Vector3(x, y, z));
 
 	/// <summary>
 	///     Adds the waypoint.
 	/// </summary>
 	/// <param name="waypoint">The waypoint.</param>
 	/// <param name="z">The z-axis value of the waypoint.</param>
-	public void AddWaypoint(Vector2 waypoint, float z)
-	{
-		_waypoints.Add(new Vector3(waypoint, z));
-	}
+	public void AddWaypoint(Vector2 waypoint, float z) => _waypoints.Add(new Vector3(waypoint, z));
 
 	/// <summary>
 	///     Adds the waypoint.
 	/// </summary>
 	/// <param name="waypoint">The waypoint.</param>
-	public void AddWaypoint(Vector3 waypoint)
-	{
-		_waypoints.Add(waypoint);
-	}
+	public void AddWaypoint(Vector3 waypoint) => _waypoints.Add(waypoint);
 
 	/// <summary>
 	///     Adds the waypoints.
 	/// </summary>
 	/// <param name="newWaypoints">The new waypoints.</param>
-	public void AddWaypoints(IEnumerable<Vector3> newWaypoints)
-	{
-		_waypoints.AddRange(newWaypoints);
-	}
+	public void AddWaypoints(IEnumerable<Vector3> newWaypoints) => _waypoints.AddRange(newWaypoints);
 
 	/// <summary>
 	///     Adds the waypoints.
 	/// </summary>
 	/// <param name="newWaypoints">The new waypoints.</param>
-	public void AddWaypoints(params Vector3[] newWaypoints)
-	{
-		_waypoints.AddRange(newWaypoints);
-	}
+	public void AddWaypoints(params Vector3[] newWaypoints) => _waypoints.AddRange(newWaypoints);
 
 	/// <summary>
 	///     Clears all of the waypoints.
 	/// </summary>
-	public void Clear()
-	{
-		_waypoints.Clear();
-	}
+	public void Clear() => _waypoints.Clear();
 
 	/// <summary>
 	///     Draw the path for debug-mode.

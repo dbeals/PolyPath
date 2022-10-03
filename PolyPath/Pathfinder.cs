@@ -147,7 +147,7 @@ public sealed class Pathfinder
 	/// <param name="pathingPolygon">The pathing polygon to find the path inside of.</param>
 	/// <param name="userData">The user data used when processing nodes.</param>
 	/// <returns>A list of points defining the found path.</returns>
-	public Path FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon, FindPathData userData) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon, userData);
+	public WaypointPath FindPath(int startColumn, int startRow, int endColumn, int endRow, PathingPolygon pathingPolygon, FindPathData userData) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingPolygon, userData);
 
 	/// <summary>
 	///     Finds the path.
@@ -157,12 +157,12 @@ public sealed class Pathfinder
 	/// <param name="pathingPolygon">The pathing polygon.</param>
 	/// <param name="userData">The user data used when processing nodes.</param>
 	/// <returns>A list of points defining the found path.</returns>
-	public Path FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData)
+	public WaypointPath FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData)
 	{
 		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData);
 		if (!pathPoints.Any())
-			return new Path();
-		var output = new Path
+			return new WaypointPath();
+		var output = new WaypointPath
 		{
 			Depth = depth
 		};

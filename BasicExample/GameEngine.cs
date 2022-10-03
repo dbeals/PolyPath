@@ -33,7 +33,6 @@ using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PolyPath;
-using Path = PolyPath.Path;
 
 namespace ExampleGame;
 
@@ -94,7 +93,7 @@ public class GameEngine : GameEngineBase
 	private readonly CustomFindPathData _userData = new ();
 	private bool _controlPressed;
 	private PathingGridNode? _endNode;
-	private Path _path;
+	private WaypointPath _path;
 	private int _selectPointIndex = -1;
 	private bool _shiftPressed;
 

@@ -209,7 +209,7 @@ namespace ExampleAdventure
 					{
 						DestinationModeFlags = DestinationModeFlags.All
 					});
-					var path = new Path
+					var path = new WaypointPath
 					{
 						Depth = depth
 					};
@@ -293,7 +293,7 @@ namespace ExampleAdventure
 
 		private Rectangle GetColumnRowPixelBounds(int column, int row) => new Rectangle(column * TileWidth, row * TileHeight, TileWidth, TileHeight);
 
-		private void DrawPath(Path path)
+		private void DrawPath(WaypointPath path)
 		{
 			foreach (var waypoint in path.Waypoints)
 			{
