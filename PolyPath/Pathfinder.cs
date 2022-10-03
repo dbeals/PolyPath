@@ -27,14 +27,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using PolyPath.Processors;
 
 namespace PolyPath;
 
 public sealed class Pathfinder
 {
 	#region Properties
+	public ICollection<IPathProcessor> Processors { get; } = new Collection<IPathProcessor>();
+
 	/// <summary>
 	///     Gets or sets the check node callback.
 	/// </summary>
@@ -43,13 +47,7 @@ public sealed class Pathfinder
 	/// </value>
 	public Func<int, int, FindPathData, bool> CheckNode { get; set; }
 
-	/// <summary>
-	///     When true, the Pathfinder will cut out extra nodes in straight lines.
-	///     For example, when generating a path from 1,1 to 3,1 the Pathfinder will generate a list of waypoints: 1,1 to 2,1 to
-	///     3,1.
-	///     With TrimPaths on, it will be simply 1,1 to 3,1.
-	/// </summary>
-	public bool TrimPaths { get; set; }
+	public IPathPostProcessor PostProcessor { get; set; }
 	#endregion
 
 	#region Methods
@@ -162,17 +160,12 @@ public sealed class Pathfinder
 		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData);
 		if (!pathPoints.Any())
 			return new WaypointPath();
-		var output = new WaypointPath
-		{
-			Depth = depth
-		};
-		foreach (var (x, y) in pathPoints)
-		{
-			var node = pathingPolygon.GetNodeAtColumnRow(x, y);
-			output.AddWaypoint(node.Bounds.Center.ToVector2(), 0f);
-		}
 
-		return output;
+		return new WaypointPath
+		{
+			Depth = depth,
+			Waypoints = (PostProcessor ?? DefaultPathPostProcessor.Instance).Process(pathPoints, pathingPolygon).ToArray()
+		};
 	}
 
 	/// <summary>
@@ -248,23 +241,8 @@ public sealed class Pathfinder
 
 		depth = output.Count;
 
-		if (!TrimPaths)
-			return output.ToArray();
-
-		var indicesToRemove = new List<int>();
-		for (var index = 1; index < output.Count - 1; ++index)
-		{
-			var previousPoint = output[index - 1];
-			var currentPoint = output[index];
-			var nextPoint = output[index + 1];
-
-			if (PointsContinueHorizontally(previousPoint, currentPoint, nextPoint) || PointsContinuesVertically(previousPoint, currentPoint, nextPoint) || PointsContinueDiagonally(previousPoint, currentPoint, nextPoint))
-				indicesToRemove.Add(index);
-		}
-
-		for (var index = indicesToRemove.Count - 1; index >= 0; --index)
-			output.RemoveAt(indicesToRemove[index]);
-
+		var initialWaypoints = output.ToArray();
+		output = Processors.Aggregate(output, (current, processor) => processor.Process(current, initialWaypoints));
 		return output.ToArray();
 	}
 
@@ -305,56 +283,6 @@ public sealed class Pathfinder
 
 		return output.Count == 0 ? null : output.ToArray();
 	}
-
-	/// <summary>
-	///     Determines whether or not three points are diagonally next to each other.
-	/// </summary>
-	/// <param name="previousPoint">The previous point.</param>
-	/// <param name="currentPoint">The current point.</param>
-	/// <param name="nextPoint">The next point.</param>
-	/// <param name="xOffset">The x offset.</param>
-	/// <param name="yOffset">The y offset.</param>
-	/// <returns>
-	///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
-	/// </returns>
-	private static bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint, int xOffset, int yOffset) => currentPoint.X + xOffset == nextPoint.X && currentPoint.Y + yOffset == nextPoint.Y && currentPoint.X + -xOffset == previousPoint.X && currentPoint.Y + -yOffset == previousPoint.Y;
-
-	/// <summary>
-	///     Determines whether or not three points are diagonally next to each other.
-	/// </summary>
-	/// <param name="previousPoint">The previous point.</param>
-	/// <param name="currentPoint">The current point.</param>
-	/// <param name="nextPoint">The next point.</param>
-	/// <returns>
-	///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
-	/// </returns>
-	private static bool PointsContinueDiagonally(Point previousPoint, Point currentPoint, Point nextPoint) =>
-		PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, 1, -1) ||
-		PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, 1, 1) ||
-		PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, -1, 1) ||
-		PointsContinueDiagonally(previousPoint, currentPoint, nextPoint, -1, -1);
-
-	/// <summary>
-	///     Determines whether or not three points are horizontally next to each other.
-	/// </summary>
-	/// <param name="previousPoint">The previous point.</param>
-	/// <param name="currentPoint">The current point.</param>
-	/// <param name="nextPoint">The next point.</param>
-	/// <returns>
-	///     <c>true</c> if all three points are horizontally next to each other; otherwise, <c>false</c>.
-	/// </returns>
-	private static bool PointsContinueHorizontally(Point previousPoint, Point currentPoint, Point nextPoint) => currentPoint.Y == nextPoint.Y && nextPoint.Y == previousPoint.Y && currentPoint.X != nextPoint.X;
-
-	/// <summary>
-	///     Determines whether or not three points are vertically next to each other.
-	/// </summary>
-	/// <param name="previousPoint">The previous point.</param>
-	/// <param name="currentPoint">The current point.</param>
-	/// <param name="nextPoint">The next point.</param>
-	/// <returns>
-	///     <c>true</c> if all three points are vertically next to each other; otherwise, <c>false</c>.
-	/// </returns>
-	private static bool PointsContinuesVertically(Point previousPoint, Point currentPoint, Point nextPoint) => currentPoint.X == nextPoint.X && nextPoint.X == previousPoint.X && currentPoint.Y != nextPoint.Y;
 
 	/// <summary>
 	///     Processes the node.

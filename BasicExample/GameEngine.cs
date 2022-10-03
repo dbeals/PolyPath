@@ -33,6 +33,7 @@ using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PolyPath;
+using PolyPath.Processors;
 
 namespace ExampleGame;
 
@@ -174,7 +175,7 @@ public class GameEngine : GameEngineBase
 			else
 				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set end point\nRight Click: Clear start node";
 
-			text = string.Format(text, _pathfinder.TrimPaths ? "Disable" : "Enable", _pathingPolygon.UseTightTests ? "Disable" : "Enable");
+			text = string.Format(text, TrimPathProcessor.IsTrimmingPaths(_pathfinder) ? "Disable" : "Enable", _pathingPolygon.UseTightTests ? "Disable" : "Enable");
 
 			Batch.DrawString(UIFont, text, new Vector2(0, 0), Color.White);
 		}
@@ -217,7 +218,7 @@ public class GameEngine : GameEngineBase
 
 			case Keys.Space:
 			{
-				_pathfinder.TrimPaths = !_pathfinder.TrimPaths;
+				TrimPathProcessor.ToggleTrimming(_pathfinder);
 				if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
 					_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 				break;

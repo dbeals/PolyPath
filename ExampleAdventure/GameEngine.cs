@@ -35,6 +35,7 @@ using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PolyPath;
+using PolyPath.Processors;
 
 namespace ExampleAdventure;
 
@@ -275,7 +276,6 @@ public class GameEngine : GameEngineBase
 
 		var pathfinder = new Pathfinder
 		{
-			TrimPaths = false,
 			CheckNode = (testColumn, testRow, userData) =>
 			{
 				var testNode = Map[testColumn, testRow];
@@ -288,19 +288,13 @@ public class GameEngine : GameEngineBase
 			}
 		};
 
-		var pathPoints = pathfinder.FindPath(Player.Column, Player.Row, column, row, out var depth, new PathfinderUserData(Map, Entities, Player)
-		{
-			DestinationModeFlags = DestinationModeFlags.All
-		});
-		var path = new WaypointPath
-		{
-			Depth = depth
-		};
+		var pathPoints = pathfinder.FindPath(Player.Column, Player.Row, column, row, out var depth, new PathfinderUserData(Map, Entities, Player));
 
-		foreach (var (x, y) in pathPoints)
-			path.AddWaypoint(x, y, 0f);
-
-		Player.Path = path;
+		Player.Path = new WaypointPath
+		{
+			Depth = depth,
+			Waypoints = (pathfinder.PostProcessor ?? DirectPathPostProcessor.Instance).Process(pathPoints, null).ToArray()
+		};;
 	}
 
 	private void InitializeGame(bool custom)
