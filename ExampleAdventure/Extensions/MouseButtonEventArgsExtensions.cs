@@ -28,19 +28,11 @@
 using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
 
-namespace ExampleAdventure.Extensions
-{
-	public static class MouseButtonEventArgsExtensions
-	{
-		#region Methods
-		public static Point GetMouseColumnRow(this MouseButtonEventArgs eventArgs, int tileWidth, int tileHeight) => new Point(eventArgs.X / tileWidth, eventArgs.Y / tileHeight);
-		#endregion
-	}
+namespace ExampleAdventure.Extensions;
 
-	public static class MouseMoveEventArgsExtensions
-	{
-		#region Methods
-		public static Point GetMouseColumnRow(this MouseMoveEventArgs eventArgs, int tileWidth, int tileHeight) => new Point(eventArgs.X / tileWidth, eventArgs.Y / tileHeight);
-		#endregion
-	}
+public static class MouseButtonEventArgsExtensions
+{
+	#region Methods
+	public static Point GetMouseColumnRow(this MouseButtonEventArgs eventArgs, int tileWidth, int tileHeight) => new (eventArgs.X / tileWidth, eventArgs.Y / tileHeight);
+	#endregion
 }

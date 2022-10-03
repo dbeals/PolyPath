@@ -25,15 +25,14 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-namespace ExampleAdventure.Core
+namespace ExampleAdventure.Core;
+
+public enum Material
 {
-	public enum Material
-	{
-		None = 0,
-		Dirt,
-		Grass,
-		Gravel,
-		Water,
-		Wall
-	}
+	None = 0,
+	Dirt,
+	Grass,
+	Gravel,
+	Water,
+	Wall
 }

@@ -31,78 +31,77 @@ using ExamplesCore.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace ExamplesCore
+namespace ExamplesCore;
+
+public abstract class GameEngineBase : Game
 {
-	public abstract class GameEngineBase : Game
+	#region Properties
+	// Graphics
+	public GraphicsDeviceManager Graphics { get; }
+
+	// Input
+	public InputManager Manager { get; } = new ();
+	public Texture2D Background { get; private set; }
+	public SpriteBatch Batch { get; private set; }
+	public Renderer Renderer { get; private set; }
+	public SpriteFont UIFont { get; private set; }
+	#endregion
+
+	#region Constructors
+	protected GameEngineBase()
 	{
-		#region Properties
-		// Input
-		public InputManager Manager { get; } = new InputManager();
+		Graphics = new GraphicsDeviceManager(this);
+		Content.RootDirectory = "Content";
 
-		// Graphics
-		public GraphicsDeviceManager Graphics { get; }
-		public SpriteBatch Batch { get; private set; }
-		public Renderer Renderer { get; private set; }
-		public SpriteFont UIFont { get; private set; }
-		public Texture2D Background { get; private set; }
-		#endregion
-
-		#region Constructors
-		protected GameEngineBase()
-		{
-			Graphics = new GraphicsDeviceManager(this);
-			Content.RootDirectory = "Content";
-
-			Manager.KeyStateChanged += OnKeyStateChanged;
-			Manager.MouseButtonStateChanged += OnMouseButtonStateChanged;
-			Manager.MouseMoved += OnMouseMoved;
-		}
-		#endregion
-
-		#region Methods
-		protected override void Initialize()
-		{
-			IsMouseVisible = true;
-			base.Initialize();
-		}
-
-		protected override void LoadContent()
-		{
-			base.LoadContent();
-
-			Batch = new SpriteBatch(GraphicsDevice);
-			Renderer = new Renderer(Batch);
-			Renderer.LoadContent();
-			UIFont = Content.Load<SpriteFont>("UIFont");
-
-			if (!File.Exists("Content/background.png"))
-				return;
-
-			using (var stream = File.OpenRead("Content/background.png"))
-			{
-				Background = Texture2D.FromStream(GraphicsDevice, stream);
-			}
-		}
-
-		protected override void UnloadContent()
-		{
-			Background?.Dispose();
-			Background = null;
-			Renderer.UnloadContent();
-			base.UnloadContent();
-		}
-
-		protected virtual void OnKeyStateChanged(object sender, KeyEventArgs e) { }
-
-		protected virtual void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e) { }
-
-		protected virtual void OnMouseMoved(object sender, MouseMoveEventArgs e) { }
-
-		protected override void Update(GameTime gameTime)
-		{
-			Manager.Update();
-			base.Update(gameTime);
-		}
-		#endregion
+		Manager.KeyStateChanged += OnKeyStateChanged;
+		Manager.MouseButtonStateChanged += OnMouseButtonStateChanged;
+		Manager.MouseMoved += OnMouseMoved;
 	}
+	#endregion
+
+	#region Methods
+	protected override void Initialize()
+	{
+		IsMouseVisible = true;
+		base.Initialize();
+	}
+
+	protected override void LoadContent()
+	{
+		base.LoadContent();
+
+		Batch = new SpriteBatch(GraphicsDevice);
+		Renderer = new Renderer(Batch);
+		Renderer.LoadContent();
+		UIFont = Content.Load<SpriteFont>("UIFont");
+
+		if (!File.Exists("Content/background.png"))
+			return;
+
+		using (var stream = File.OpenRead("Content/background.png"))
+		{
+			Background = Texture2D.FromStream(GraphicsDevice, stream);
+		}
+	}
+
+	protected virtual void OnKeyStateChanged(object sender, KeyEventArgs e) { }
+
+	protected virtual void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e) { }
+
+	protected virtual void OnMouseMoved(object sender, MouseMoveEventArgs e) { }
+
+	protected override void UnloadContent()
+	{
+		Background?.Dispose();
+		Background = null;
+		Renderer.UnloadContent();
+		base.UnloadContent();
+	}
+
+	protected override void Update(GameTime gameTime)
+	{
+		Manager.Update();
+		base.Update(gameTime);
+	}
+	#endregion
 }

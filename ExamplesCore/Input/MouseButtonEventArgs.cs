@@ -29,29 +29,27 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace ExamplesCore.Input
+namespace ExamplesCore.Input;
+
+public sealed class MouseButtonEventArgs : EventArgs
 {
-	public sealed class MouseButtonEventArgs : EventArgs
+	#region Properties
+	public int X => Position.X;
+
+	public int Y => Position.Y;
+	public MouseButtons Button { get; private set; }
+
+	public ButtonState EventType { get; private set; }
+
+	public Point Position { get; private set; }
+	#endregion
+
+	#region Constructors
+	public MouseButtonEventArgs(MouseButtons button, ButtonState eventType, Point position)
 	{
-		#region Properties
-		public MouseButtons Button { get; private set; }
-
-		public ButtonState EventType { get; private set; }
-
-		public Point Position { get; private set; }
-
-		public int X => Position.X;
-
-		public int Y => Position.Y;
-		#endregion
-
-		#region Constructors
-		public MouseButtonEventArgs(MouseButtons button, ButtonState eventType, Point position)
-		{
-			Button = button;
-			EventType = eventType;
-			Position = position;
-		}
-		#endregion
+		Button = button;
+		EventType = eventType;
+		Position = position;
 	}
+	#endregion
 }

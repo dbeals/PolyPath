@@ -28,12 +28,11 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace ExampleAdventure.Extensions
+namespace ExampleAdventure.Extensions;
+
+public static class MouseStateExtensions
 {
-	public static class MouseStateExtensions
-	{
-		#region Methods
-		public static Point GetMouseColumnRow(this MouseState mouseState, int tileWidth, int tileHeight) => new Point(mouseState.X / tileWidth, mouseState.Y / tileHeight);
-		#endregion
-	}
+	#region Methods
+	public static Point GetMouseColumnRow(this MouseState mouseState, int tileWidth, int tileHeight) => new (mouseState.X / tileWidth, mouseState.Y / tileHeight);
+	#endregion
 }

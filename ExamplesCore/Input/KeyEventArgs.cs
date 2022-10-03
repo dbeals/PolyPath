@@ -28,22 +28,20 @@
 using System;
 using Microsoft.Xna.Framework.Input;
 
-namespace ExamplesCore.Input
+namespace ExamplesCore.Input;
+
+public sealed class KeyEventArgs : EventArgs
 {
-	public sealed class KeyEventArgs : EventArgs
+	#region Properties
+	public KeyState EventType { get; set; }
+	public Keys Key { get; set; }
+	#endregion
+
+	#region Constructors
+	public KeyEventArgs(Keys key, KeyState eventType)
 	{
-		#region Properties
-		public Keys Key { get; set; }
-
-		public KeyState EventType { get; set; }
-		#endregion
-
-		#region Constructors
-		public KeyEventArgs(Keys key, KeyState eventType)
-		{
-			Key = key;
-			EventType = eventType;
-		}
-		#endregion
+		Key = key;
+		EventType = eventType;
 	}
+	#endregion
 }

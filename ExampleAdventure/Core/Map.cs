@@ -27,69 +27,69 @@
 
 using System.Collections.Generic;
 
-namespace ExampleAdventure.Core
+namespace ExampleAdventure.Core;
+
+public class Map
 {
-	public class Map
+	#region Variables
+	private readonly MapNode[] _nodes;
+	#endregion
+
+	#region Properties
+	public int Height { get; }
+
+	public MapNode this[int column, int row]
 	{
-		#region Variables
-		private readonly MapNode[] _nodes;
-		#endregion
-
-		#region Properties
-		public int Width { get; }
-		public int Height { get; }
-
-		public List<Room> Rooms { get; } = new List<Room>();
-
-		public MapNode this[int column, int row]
+		get
 		{
-			get
-			{
-				var index = row * Width + column;
-				return _nodes[index] ?? (_nodes[index] = new MapNode());
-			}
+			var index = row * Width + column;
+			return _nodes[index] ?? (_nodes[index] = new MapNode());
 		}
-		#endregion
-
-		#region Constructors
-		public Map(int width, int height)
-		{
-			Width = width;
-			Height = height;
-			_nodes = new MapNode[width * height];
-		}
-		#endregion
-
-		#region Methods
-		public Room GetRoomAt(int column, int row)
-		{
-			foreach (var room in Rooms)
-			{
-				if (room.Bounds.Contains(column, row))
-					return room;
-			}
-
-			return null;
-		}
-
-		public bool IsPassable(int column, int row)
-		{
-			if (IsOutOfBounds(column, row))
-				return false;
-
-			var node = this[column, row];
-			if (node.Material == Material.None)
-				return false;
-			if (node.Material == Material.Wall)
-				return false;
-			if (node.Material == Material.Water)
-				return false;
-
-			return true;
-		}
-
-		public bool Contains(int column, int row) => !IsOutOfBounds(column, row);
-		public bool IsOutOfBounds(int column, int row) => column < 0 || row < 0 || column >= Width || row >= Height;
-		#endregion
 	}
+
+	public List<Room> Rooms { get; } = new ();
+	public int Width { get; }
+	#endregion
+
+	#region Constructors
+	public Map(int width, int height)
+	{
+		Width = width;
+		Height = height;
+		_nodes = new MapNode[width * height];
+	}
+	#endregion
+
+	#region Methods
+	public bool Contains(int column, int row) => !IsOutOfBounds(column, row);
+
+	public Room GetRoomAt(int column, int row)
+	{
+		foreach (var room in Rooms)
+		{
+			if (room.Bounds.Contains(column, row))
+				return room;
+		}
+
+		return null;
+	}
+
+	public bool IsOutOfBounds(int column, int row) => column < 0 || row < 0 || column >= Width || row >= Height;
+
+	public bool IsPassable(int column, int row)
+	{
+		if (IsOutOfBounds(column, row))
+			return false;
+
+		var node = this[column, row];
+		if (node.Material == Material.None)
+			return false;
+		if (node.Material == Material.Wall)
+			return false;
+		if (node.Material == Material.Water)
+			return false;
+
+		return true;
+	}
+	#endregion
 }

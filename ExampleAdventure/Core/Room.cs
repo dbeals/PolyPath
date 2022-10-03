@@ -28,22 +28,21 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
-namespace ExampleAdventure.Core
-{
-	public class Room
-	{
-		#region Properties
-		public int Column { get; set; }
-		public int Row { get; set; }
-		public int Width { get; set; }
-		public int Height { get; set; }
-		public Rectangle Bounds => new Rectangle(Column, Row, Width, Height);
-		public List<Point> Doorways { get; } = new List<Point>();
-		public Point? WaterPoint { get; set; }
-		#endregion
+namespace ExampleAdventure.Core;
 
-		#region Methods
-		public Rectangle GetPixelBounds(int tileWidth, int tileHeight) => new Rectangle(Column * tileWidth, Row * tileHeight, Width * tileWidth, Height * tileHeight);
-		#endregion
-	}
+public class Room
+{
+	#region Properties
+	public Rectangle Bounds => new (Column, Row, Width, Height);
+	public List<Point> Doorways { get; } = new ();
+	public int Column { get; set; }
+	public int Height { get; set; }
+	public int Row { get; set; }
+	public Point? WaterPoint { get; set; }
+	public int Width { get; set; }
+	#endregion
+
+	#region Methods
+	public Rectangle GetPixelBounds(int tileWidth, int tileHeight) => new (Column * tileWidth, Row * tileHeight, Width * tileWidth, Height * tileHeight);
+	#endregion
 }

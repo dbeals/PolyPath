@@ -25,15 +25,14 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-namespace ExamplesCore.Input
+namespace ExamplesCore.Input;
+
+public enum MouseButtons
 {
-	public enum MouseButtons
-	{
-		None,
-		Left,
-		Middle,
-		Right,
-		X1,
-		X2
-	}
+	None,
+	Left,
+	Middle,
+	Right,
+	X1,
+	X2
 }

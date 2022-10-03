@@ -25,12 +25,11 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-namespace ExampleAdventure.Core
+namespace ExampleAdventure.Core;
+
+public class MapNode
 {
-	public class MapNode
-	{
-		#region Properties
-		public Material Material { get; set; }
-		#endregion
-	}
+	#region Properties
+	public Material Material { get; set; }
+	#endregion
 }
