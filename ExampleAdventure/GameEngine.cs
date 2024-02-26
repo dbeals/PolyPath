@@ -90,8 +90,9 @@ public class GameEngine : GameEngineBase
 	{
 		base.OnKeyStateChanged(sender, e);
 
-		if (e.EventType == KeyState.Up && e.Key == Keys.F5)
-			_isEditMode = !_isEditMode;
+		// Commenting out edit mode for now.
+		//if (e.EventType == KeyState.Up && e.Key == Keys.F5)
+			//_isEditMode = !_isEditMode;
 
 		if (_isEditMode)
 			HandleEditorKeyboardInput(sender, e);
@@ -257,12 +258,13 @@ public class GameEngine : GameEngineBase
 				break;
 			}
 
-			case Keys.F2:
+			// Commenting out edit mode for now
+			/*case Keys.F2:
 			{
 				InitializeGame(true);
 				_isEditMode = true;
 				break;
-			}
+			}*/
 		}
 	}
 
@@ -334,7 +336,7 @@ public class GameEngine : GameEngineBase
 			if (tries >= 10)
 				return;
 			var newMap = MapGenerator.GenerateMap(Rng, width, height, custom ? 0 : 100);
-			if (newMap.Rooms.Count <= 1)
+			if (newMap.Rooms.Count == 1)
 				continue; // Only 1 room generated, we can do better.
 
 			Map = newMap;
@@ -355,9 +357,13 @@ public class GameEngine : GameEngineBase
 			if (!InitializePlayer())
 				continue; // We failed to place the player, try regenerating.
 
-			var numberOfRats = Rng.Next(1, Map.Rooms.Count);
-			for (var ratIndex = 0; ratIndex < numberOfRats; ++ratIndex)
-				InitializeRat();
+			if (!custom)
+			{
+				var numberOfRats = Rng.Next(1, Map.Rooms.Count);
+				for (var ratIndex = 0; ratIndex < numberOfRats; ++ratIndex)
+					InitializeRat();
+			}
+
 			break;
 		}
 	}
