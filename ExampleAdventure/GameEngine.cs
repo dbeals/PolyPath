@@ -113,11 +113,11 @@ public class GameEngine : GameEngineBase
 	{
 		base.OnMouseMoved(sender, e);
 
-		if (_editorIsDragging)
-		{
-			var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
-			SetMapNode(column, row, _editorMaterial);
-		}
+		if (!_editorIsDragging)
+			return;
+
+		var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+		SetMapNode(column, row, _editorMaterial);
 	}
 
 	protected override void Update(GameTime gameTime)
@@ -127,6 +127,8 @@ public class GameEngine : GameEngineBase
 		foreach (var entity in Entities)
 			entity.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
 	}
+
+	private static Rectangle GetColumnRowPixelBounds(int column, int row) => new (column * TileWidth, row * TileHeight, TileWidth, TileHeight);
 
 	private void DrawEntity(Entity entity)
 	{
@@ -188,92 +190,78 @@ public class GameEngine : GameEngineBase
 		}
 	}
 
-	private Rectangle GetColumnRowPixelBounds(int column, int row) => new (column * TileWidth, row * TileHeight, TileWidth, TileHeight);
-
 	private void HandleEditorKeyboardInput(object sender, KeyEventArgs e)
 	{
-		if (e.EventType == KeyState.Up)
+		if (e.EventType != KeyState.Up)
+			return;
+
+		_editorMaterial = e.Key switch
 		{
-			switch (e.Key)
-			{
-				case Keys.D0:
-				{
-					_editorMaterial = Material.None;
-					break;
-				}
-				case Keys.D1:
-				{
-					_editorMaterial = Material.Dirt;
-					break;
-				}
-				case Keys.D2:
-				{
-					_editorMaterial = Material.Grass;
-					break;
-				}
-				case Keys.D3:
-				{
-					_editorMaterial = Material.Gravel;
-					break;
-				}
-				case Keys.D4:
-				{
-					_editorMaterial = Material.Water;
-					break;
-				}
-				case Keys.D5:
-				{
-					_editorMaterial = Material.Wall;
-					break;
-				}
-			}
-		}
+			Keys.D0 => Material.None,
+			Keys.D1 => Material.Dirt,
+			Keys.D2 => Material.Grass,
+			Keys.D3 => Material.Gravel,
+			Keys.D4 => Material.Water,
+			Keys.D5 => Material.Wall,
+			_ => _editorMaterial
+		};
 	}
 
 	private void HandleEditorMouseInput(object sender, MouseButtonEventArgs e)
 	{
-		if (e.EventType == ButtonState.Pressed)
+		switch (e.EventType)
 		{
-			if (e.Button == MouseButtons.Left)
-				_editorIsDragging = true;
-		}
-
-		if (e.EventType == ButtonState.Released)
-		{
-			_editorIsDragging = false;
-			if (e.Button == MouseButtons.Left)
+			case ButtonState.Pressed:
 			{
-				var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
-				SetMapNode(column, row, _editorMaterial);
+				if (e.Button == MouseButtons.Left)
+					_editorIsDragging = true;
+				break;
 			}
-			else if (e.Button == MouseButtons.Right && Player != null)
+
+			case ButtonState.Released:
 			{
-				var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
-				Player.Column = column;
-				Player.Row = row;
+				_editorIsDragging = false;
+				switch (e.Button)
+				{
+					case MouseButtons.Left:
+					{
+						var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+						SetMapNode(column, row, _editorMaterial);
+						break;
+					}
+					case MouseButtons.Right when Player != null:
+					{
+						var (column, row) = e.GetMouseColumnRow(TileWidth, TileHeight);
+						Player.Column = column;
+						Player.Row = row;
+						break;
+					}
+				}
+
+				break;
 			}
 		}
 	}
 
 	private void HandleGameKeyboardInput(object sender, KeyEventArgs e)
 	{
-		if (e.EventType == KeyState.Up)
-		{
-			switch (e.Key)
-			{
-				case Keys.F1:
-				{
-					InitializeGame(false);
-					_isEditMode = false;
-					break;
-				}
+		if (e.EventType != KeyState.Up)
+			return;
 
-				case Keys.F2:
-				{
-					InitializeGame(true);
-					_isEditMode = true;
-					break;
-				}
+		switch (e.Key)
+		{
+			case Keys.F1:
+			{
+				InitializeGame(false);
+				_isEditMode = false;
+				break;
+			}
+
+			case Keys.F2:
+			{
+				InitializeGame(true);
+				_isEditMode = true;
+				break;
 			}
 		}
 	}
@@ -294,7 +282,7 @@ public class GameEngine : GameEngineBase
 
 		var pathfinder = new Pathfinder
 		{
-			CheckNode = (testColumn, testRow, userData) =>
+			CheckNode = (testColumn, testRow, _) =>
 			{
 				var testNode = Map[testColumn, testRow];
 				if (testNode.Material is Material.None or Material.Wall or Material.Water)
@@ -313,7 +301,6 @@ public class GameEngine : GameEngineBase
 			Depth = depth,
 			Waypoints = (pathfinder.PostProcessor ?? DirectPathPostProcessor.Instance).Process(pathPoints, null).ToArray()
 		};
-		;
 	}
 
 	private void InitializeCharacterTiles()
@@ -339,12 +326,18 @@ public class GameEngine : GameEngineBase
 	{
 		var width = GraphicsDevice.Viewport.Width / TileWidth;
 		var height = GraphicsDevice.Viewport.Height / TileHeight;
+		var tries = 0;
 
 		while (true)
 		{
-			Map = MapGenerator.GenerateMap(Rng, width, height, custom ? 0 : 100);
-			if (Map.Rooms.Count == 1)
+			++tries;
+			if (tries >= 10)
+				return;
+			var newMap = MapGenerator.GenerateMap(Rng, width, height, custom ? 0 : 100);
+			if (newMap.Rooms.Count <= 1)
 				continue; // Only 1 room generated, we can do better.
+
+			Map = newMap;
 
 			Brushes = new BrushSet
 			{
@@ -462,7 +455,6 @@ public class GameEngine : GameEngineBase
 	}
 	#endregion
 
-	public const int TileHeight = 16;
-
-	public const int TileWidth = 16;
+	public const int TileHeight = 32;
+	public const int TileWidth = 32;
 }

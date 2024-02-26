@@ -34,7 +34,7 @@ if(endNode == null || !endPoint.IsPathable)
 	return;
 	
 var pathfinder = new Pathfinder();
-pathfinder.TrimPaths = true;
+pathfinder.Processors.Add(new TrimPathProcessor());
 var path = pathfinder.FindPath(startNode.Column, startNode.Row, endNode.Column, endNode.Row, pathingPolygon);
 // Note that you can also omit the pathingPolygon in this call and you'll receive a list of Points that are grid coordinates.
 // You can then convert that to a path using the pathingPolygon class (this is what  the override used above does.)

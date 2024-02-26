@@ -45,7 +45,7 @@ public sealed class Renderer
 	#region Methods
 	public void Begin()
 	{
-		_spriteBatch.Begin();
+		_spriteBatch.Begin(samplerState: SamplerState.PointClamp);
 	}
 
 	public void DrawLine(float startX, float startY, float endX, float endY, Color color)
