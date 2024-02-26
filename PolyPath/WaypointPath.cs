@@ -35,20 +35,19 @@ namespace PolyPath;
 public sealed class WaypointPath
 {
 	#region Variables
-	private List<Vector3> _waypoints = new ();
+	private List<Vector3> _waypoints = [];
 	#endregion
 
 	#region Properties
 	public Vector3? LastWaypoint => _waypoints.Count == 0 ? null : _waypoints.Last();
 	public int Length => _waypoints.Count;
-
 	public Vector3? NextWaypoint => _waypoints.Count == 0 ? null : _waypoints.First();
 	public int Depth { get; set; }
 
 	public Vector3[] Waypoints
 	{
 		get => _waypoints.ToArray();
-		set => _waypoints = new List<Vector3>(value ?? Array.Empty<Vector3>());
+		set => _waypoints = [..value ?? Array.Empty<Vector3>()];
 	}
 	#endregion
 
@@ -66,7 +65,7 @@ public sealed class WaypointPath
 	/// </summary>
 	/// <param name="waypoint">The waypoint.</param>
 	/// <param name="z">The z-axis value of the waypoint.</param>
-	public void AddWaypoint(Vector2 waypoint, float z) => _waypoints.Add(new Vector3(waypoint, z));
+	public void AddWaypoint(Vector2 waypoint, float z = 0.0f) => _waypoints.Add(new Vector3(waypoint, z));
 
 	/// <summary>
 	///     Adds the waypoint.
@@ -121,6 +120,33 @@ public sealed class WaypointPath
 	/// <param name="position">The position to calculate the distance from.</param>
 	/// <returns></returns>
 	public Vector3 GetDistanceVectorToNextWaypoint(Vector3 position) => NextWaypoint == null ? Vector3.Zero : NextWaypoint.Value - position;
+
+	/// <summary>
+	///     Insert a waypoint at the specified index. The waypoint that is currently at the specified index will be
+	///     after the new waypoint after inserting.
+	/// </summary>
+	/// <param name="index">The index where to insert the waypoint</param>
+	/// <param name="x">The x-axis value of the waypoint.</param>
+	/// <param name="y">The y-axis value of the waypoint.</param>
+	/// <param name="z">The z-axis value of the waypoint.</param>
+	public void InsertWaypoint(int index, float x, float y, float z) => InsertWaypoint(index, new Vector3(x, y, z));
+
+	/// <summary>
+	///     Insert a waypoint at the specified index. The waypoint that is currently at the specified index will be
+	///     after the new waypoint after inserting.
+	/// </summary>
+	/// <param name="index">The index where to insert the waypoint</param>
+	/// <param name="item">The waypoint to insert.</param>
+	public void InsertWaypoint(int index, Vector3 item) => _waypoints.Insert(index, item);
+
+	/// <summary>
+	///     Insert a waypoint at the specified index. The waypoint that is currently at the specified index will be
+	///     after the new waypoint after inserting.
+	/// </summary>
+	/// <param name="index">The index where to insert the waypoint</param>
+	/// <param name="item">The waypoint to insert.</param>
+	/// <param name="z">The z-axis value of the waypoint.</param>
+	public void InsertWaypoint(int index, Vector2 item, float z = 0.0f) => _waypoints.Insert(index, new Vector3(item, z));
 
 	/// <summary>
 	///     Pops the last waypoint.
