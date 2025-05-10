@@ -1,14 +1,14 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyPath", "PolyPath\PolyPath.csproj", "{2115215C-F15E-4812-A394-AD67F12F9486}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PolyPath", "PolyPath\PolyPath.csproj", "{2115215C-F15E-4812-A394-AD67F12F9486}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{D1B18B14-D8C3-4911-8084-79AF7EB3E156}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExamplesCore", "ExamplesCore\ExamplesCore.csproj", "{4CE18EA8-E939-4A51-B8A2-987E08FCACB9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExamplesCore", "ExamplesCore\ExamplesCore.csproj", "{4CE18EA8-E939-4A51-B8A2-987E08FCACB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicExample", "BasicExample\BasicExample.csproj", "{FCD36338-F269-43B2-B298-7D2EFAF0B090}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BasicExample", "BasicExample\BasicExample.csproj", "{FCD36338-F269-43B2-B298-7D2EFAF0B090}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExampleAdventure", "ExampleAdventure\ExampleAdventure.csproj", "{5346F714-4A35-4D33-B09D-DC95D8E0C9BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExampleAdventure", "ExampleAdventure\ExampleAdventure.csproj", "{5346F714-4A35-4D33-B09D-DC95D8E0C9BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

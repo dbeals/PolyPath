@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net9.0-windows</TargetFramework>
 		<RollForward>Major</RollForward>
 		<PublishReadyToRun>false</PublishReadyToRun>
 		<TieredCompilation>false</TieredCompilation>
@@ -26,8 +26,8 @@
 		<EmbeddedResource Include="Icon.bmp"/>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303"/>
-		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303"/>
+		<PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.3" />
+		<PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.3" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\ExamplesCore\ExamplesCore.csproj"/>
