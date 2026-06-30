@@ -38,6 +38,6 @@ public class DirectPathPostProcessor : IPathPostProcessor
 	#endregion
 
 	#region Methods
-	public List<Vector3> Process(Point[] input, PathingPolygon pathingPolygon) => input.Select(x => new Vector3(x.X, x.Y, 0f)).ToList();
+	public List<Vector3> Process(Point[] input, IPathingGrid pathingGrid) => input.Select(x => new Vector3(x.X, x.Y, 0f)).ToList();
 	#endregion
 }

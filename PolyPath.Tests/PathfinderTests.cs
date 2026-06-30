@@ -51,6 +51,27 @@ public sealed class PathfinderTests
 		}
 		#endregion
 	}
+
+	private sealed class ZeroNodeWeightPathData : FindPathData
+	{
+		#region Methods
+		public override int GetWeight(Point nodePosition, Point endPosition) => 0;
+		#endregion
+	}
+
+	private sealed class TestPathingGrid(int width, int height, IReadOnlyCollection<Point>? blockedNodes = null) : IPathingGrid
+	{
+		#region Variables
+		private readonly HashSet<Point> _blockedNodes = blockedNodes?.ToHashSet() ?? [];
+		#endregion
+
+		#region Methods
+		public bool ContainsColumnRow(int column, int row) => column >= 0 && column < width && row >= 0 && row < height;
+		public PathingGridNode GetNodeAtColumnRow(int column, int row) => new (column, row, new Rectangle(column * 10, row * 10, 10, 10), IsPathable(column, row));
+		public bool IsPathable(int column, int row) => ContainsColumnRow(column, row) && !_blockedNodes.Contains(new Point(column, row));
+		public bool IsPathable(Point point) => IsPathable(point.X, point.Y);
+		#endregion
+	}
 	#endregion
 
 	#region Methods
@@ -139,6 +160,55 @@ public sealed class PathfinderTests
 		var path = pathfinder.FindPath(0, 0, 2, 0, out _, new WeightedMovementPathData());
 
 		Assert.Equal([new Point(0, 0), new Point(1, 0), new Point(2, 0)], path);
+	}
+
+	[Fact]
+	public void FindPathStillHasBaseMovementCostWhenNodeWeightIsZero()
+	{
+		var pathfinder = CreateBoundedPathfinder(4, 1);
+		var path = pathfinder.FindPath(0, 0, 3, 0, out var depth, new ZeroNodeWeightPathData());
+
+		Assert.Equal(4, depth);
+		Assert.Equal([new Point(0, 0), new Point(1, 0), new Point(2, 0), new Point(3, 0)], path);
+	}
+
+	[Fact]
+	public void FindPathUsesPathingGridForBoundsAndPathability()
+	{
+		var pathfinder = new Pathfinder
+		{
+			PathingGrid = new TestPathingGrid(3, 1, blockedNodes: [new Point(1, 0)])
+		};
+
+		var path = pathfinder.FindPath(0, 0, 2, 0, out var depth, ExactPathData());
+
+		Assert.Equal(0, depth);
+		Assert.Empty(path);
+	}
+
+	[Fact]
+	public void FindPathAppliesCheckNodeAsOverlayAfterPathingGrid()
+	{
+		var pathfinder = new Pathfinder
+		{
+			PathingGrid = new TestPathingGrid(3, 1),
+			CheckNode = (column, row, _) => column != 1 || row != 0
+		};
+
+		var path = pathfinder.FindPath(0, 0, 2, 0, out var depth, ExactPathData());
+
+		Assert.Equal(0, depth);
+		Assert.Empty(path);
+	}
+
+	[Fact]
+	public void FindPathCanConvertGridPathToWaypointsThroughPathingGrid()
+	{
+		var pathfinder = new Pathfinder();
+		var path = pathfinder.FindPath(0, 0, 2, 0, new TestPathingGrid(3, 1), ExactPathData());
+
+		Assert.Equal(3, path.Depth);
+		Assert.Equal([new Vector3(5f, 5f, 0f), new Vector3(15f, 5f, 0f), new Vector3(25f, 5f, 0f)], path.Waypoints);
 	}
 
 	private static Pathfinder CreateBoundedPathfinder(int width, int height, IReadOnlyCollection<Point>? blockedNodes = null)

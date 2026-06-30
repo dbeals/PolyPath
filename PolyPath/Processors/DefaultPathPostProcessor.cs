@@ -37,12 +37,12 @@ public class DefaultPathPostProcessor : IPathPostProcessor
 	#endregion
 
 	#region Methods
-	public List<Vector3> Process(Point[] input, PathingPolygon pathingPolygon)
+	public List<Vector3> Process(Point[] input, IPathingGrid pathingGrid)
 	{
 		var output = new List<Vector3>(input.Length);
 		foreach (var (x, y) in input)
 		{
-			var node = pathingPolygon.GetNodeAtColumnRow(x, y);
+			var node = pathingGrid.GetNodeAtColumnRow(x, y);
 			var center = node.Bounds.Center;
 			output.Add(new Vector3(center.X, center.Y, 0f));
 		}

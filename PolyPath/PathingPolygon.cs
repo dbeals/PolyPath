@@ -32,7 +32,7 @@ using Microsoft.Xna.Framework;
 
 namespace PolyPath;
 
-public sealed class PathingPolygon
+public sealed class PathingPolygon : IPathingGrid
 {
 	#region Properties
 	public int Height { get; private set; }
@@ -181,6 +181,25 @@ public sealed class PathingPolygon
 	/// <param name="point">The point.</param>
 	/// <returns>The node at the specified position or a blank node.</returns>
 	public PathingGridNode GetNodeAtColumnRow(Point point) => GetNodeAtColumnRow(point.X, point.Y);
+
+	/// <summary>
+	///     Determines whether column/row is inside the bounds of the grid and pathable.
+	/// </summary>
+	/// <param name="column">The column.</param>
+	/// <param name="row">The row.</param>
+	/// <returns>
+	///     <c>true</c> if column/row is inside the bounds of the grid and pathable; otherwise, <c>false</c>.
+	/// </returns>
+	public bool IsPathable(int column, int row) => ContainsColumnRow(column, row) && GetNodeAtColumnRow(column, row).IsPathable;
+
+	/// <summary>
+	///     Determines whether the point is inside the bounds of the grid and pathable.
+	/// </summary>
+	/// <param name="point">The point.</param>
+	/// <returns>
+	///     <c>true</c> if the point is inside the bounds of the grid and pathable; otherwise, <c>false</c>.
+	/// </returns>
+	public bool IsPathable(Point point) => IsPathable(point.X, point.Y);
 
 	/// <summary>
 	///     Gets the node at 2D position.

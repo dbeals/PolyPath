@@ -97,17 +97,12 @@ public class GameEngine : GameEngineBase
 	private WaypointPath _path;
 	private int _selectPointIndex = -1;
 	private bool _shiftPressed;
-
 	private bool _showHelp = true;
-
 	private PathingGridNode? _startNode;
 	#endregion
 
 	#region Constructors
-	public GameEngine()
-	{
-		_pathfinder.CheckNode = (column, row, userData) => _pathingPolygon.ContainsColumnRow(column, row) && _pathingPolygon.Nodes[row * _pathingPolygon.Width + column].IsPathable;
-	}
+	public GameEngine() => _pathfinder.PathingGrid = _pathingPolygon;
 	#endregion
 
 	#region Methods

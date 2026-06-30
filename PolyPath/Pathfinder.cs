@@ -47,6 +47,7 @@ public sealed class Pathfinder
 	/// </value>
 	public Func<int, int, FindPathData, bool> CheckNode { get; set; }
 
+	public IPathingGrid PathingGrid { get; set; }
 	public IPathPostProcessor PostProcessor { get; set; }
 	#endregion
 
@@ -66,12 +67,36 @@ public sealed class Pathfinder
 	/// <summary>
 	///     Finds the path.
 	/// </summary>
+	/// <param name="startColumn">The start column.</param>
+	/// <param name="startRow">The start row.</param>
+	/// <param name="endColumn">The end column.</param>
+	/// <param name="endRow">The end row.</param>
+	/// <param name="depth">An output variable; the depth of the path.</param>
+	/// <param name="userData">The user data used when processing nodes.</param>
+	/// <param name="pathingGrid">The pathing grid to query for node validity.</param>
+	/// <returns>A list of points defining the found path.</returns>
+	public Point[] FindPath(int startColumn, int startRow, int endColumn, int endRow, out int depth, FindPathData userData, IPathingGrid pathingGrid) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), out depth, userData, pathingGrid);
+
+	/// <summary>
+	///     Finds the path.
+	/// </summary>
 	/// <param name="startPosition">The start position.</param>
 	/// <param name="endPosition">The end position.</param>
 	/// <param name="depth">An output variable; the depth of the path.</param>
 	/// <param name="userData">The user data used when processing nodes.</param>
 	/// <returns>A list of points defining the found path.</returns>
-	public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData)
+	public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData) => FindPath(startPosition, endPosition, out depth, userData, PathingGrid);
+
+	/// <summary>
+	///     Finds the path.
+	/// </summary>
+	/// <param name="startPosition">The start position.</param>
+	/// <param name="endPosition">The end position.</param>
+	/// <param name="depth">An output variable; the depth of the path.</param>
+	/// <param name="userData">The user data used when processing nodes.</param>
+	/// <param name="pathingGrid">The pathing grid to query for node validity.</param>
+	/// <returns>A list of points defining the found path.</returns>
+	public Point[] FindPath(Point startPosition, Point endPosition, out int depth, FindPathData userData, IPathingGrid pathingGrid)
 	{
 		userData.StartPosition = startPosition;
 		userData.EndPosition = endPosition;
@@ -104,22 +129,22 @@ public sealed class Pathfinder
 				possibleNode ??= currentNode;
 			}
 
-			var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, bestNodes, endPosition, userData);
-			var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, bestNodes, endPosition, userData);
-			var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, bestNodes, endPosition, userData);
-			var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, bestNodes, endPosition, userData);
+			var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
+			var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
+			var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
+			var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
 
 			if (left != null && up != null)
-				ProcessNode(currentNode, -1, -1, openNodes, closedNodes, bestNodes, endPosition, userData);
+				ProcessNode(currentNode, -1, -1, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
 
 			if (right != null && up != null)
-				ProcessNode(currentNode, 1, -1, openNodes, closedNodes, bestNodes, endPosition, userData);
+				ProcessNode(currentNode, 1, -1, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
 
 			if (right != null && down != null)
-				ProcessNode(currentNode, 1, 1, openNodes, closedNodes, bestNodes, endPosition, userData);
+				ProcessNode(currentNode, 1, 1, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
 
 			if (left != null && down != null)
-				ProcessNode(currentNode, -1, 1, openNodes, closedNodes, bestNodes, endPosition, userData);
+				ProcessNode(currentNode, -1, 1, openNodes, closedNodes, bestNodes, endPosition, userData, pathingGrid);
 
 			closedNodes.Add(currentPosition);
 		}
@@ -153,7 +178,7 @@ public sealed class Pathfinder
 	/// <returns>A list of points defining the found path.</returns>
 	public WaypointPath FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData)
 	{
-		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData);
+		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData, pathingPolygon);
 		if (!pathPoints.Any())
 			return new WaypointPath();
 
@@ -161,6 +186,39 @@ public sealed class Pathfinder
 		{
 			Depth = depth,
 			Waypoints = (PostProcessor ?? DefaultPathPostProcessor.Instance).Process(pathPoints, pathingPolygon).ToArray()
+		};
+	}
+
+	/// <summary>
+	///     Finds the path.
+	/// </summary>
+	/// <param name="startColumn">The start column.</param>
+	/// <param name="startRow">The start row.</param>
+	/// <param name="endColumn">The end column.</param>
+	/// <param name="endRow">The end row.</param>
+	/// <param name="pathingGrid">The pathing grid.</param>
+	/// <param name="userData">The user data used when processing nodes.</param>
+	/// <returns>A list of points defining the found path.</returns>
+	public WaypointPath FindPath(int startColumn, int startRow, int endColumn, int endRow, IPathingGrid pathingGrid, FindPathData userData) => FindPath(new Point(startColumn, startRow), new Point(endColumn, endRow), pathingGrid, userData);
+
+	/// <summary>
+	///     Finds the path.
+	/// </summary>
+	/// <param name="startPosition">The start position.</param>
+	/// <param name="endPosition">The end position.</param>
+	/// <param name="pathingGrid">The pathing grid.</param>
+	/// <param name="userData">The user data used when processing nodes.</param>
+	/// <returns>A list of points defining the found path.</returns>
+	public WaypointPath FindPath(Point startPosition, Point endPosition, IPathingGrid pathingGrid, FindPathData userData)
+	{
+		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData, pathingGrid);
+		if (!pathPoints.Any())
+			return new WaypointPath();
+
+		return new WaypointPath
+		{
+			Depth = depth,
+			Waypoints = (PostProcessor ?? DefaultPathPostProcessor.Instance).Process(pathPoints, pathingGrid).ToArray()
 		};
 	}
 
@@ -272,12 +330,12 @@ public sealed class Pathfinder
 	/// <param name="endPosition">The end position.</param>
 	/// <param name="userData">The user data.</param>
 	/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
-	private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, PriorityQueue<PathTreeNode, int> openNodes, ISet<Point> closedNodes, IDictionary<Point, PathTreeNode> bestNodes, Point endPosition, FindPathData userData)
+	private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, PriorityQueue<PathTreeNode, int> openNodes, ISet<Point> closedNodes, IDictionary<Point, PathTreeNode> bestNodes, Point endPosition, FindPathData userData, IPathingGrid pathingGrid)
 	{
 		var position = new Point(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset);
 		var weight = currentNode.Weight + (userData?.GetMovementWeight(currentNode.Position, position) ?? 0) + (userData?.GetWeight(position, endPosition) ?? 0);
 		var newNode = new PathTreeNode(position, currentNode, weight);
-		if ((CheckNode != null && !CheckNode(newNode.Position.X, newNode.Position.Y, userData)) || closedNodes.Contains(position))
+		if (!IsNodePathable(position, userData, pathingGrid) || closedNodes.Contains(position))
 			return null;
 
 		if (bestNodes.TryGetValue(position, out var bestNode) && bestNode.Weight <= weight)
@@ -286,6 +344,14 @@ public sealed class Pathfinder
 		bestNodes[position] = newNode;
 		openNodes.Enqueue(newNode, weight);
 		return newNode;
+	}
+
+	private bool IsNodePathable(Point position, FindPathData userData, IPathingGrid pathingGrid)
+	{
+		if (pathingGrid != null && !pathingGrid.IsPathable(position))
+			return false;
+
+		return CheckNode == null || CheckNode(position.X, position.Y, userData);
 	}
 	#endregion
 }
