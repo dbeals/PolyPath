@@ -75,64 +75,60 @@ public sealed class Pathfinder
 	{
 		userData.StartPosition = startPosition;
 		userData.EndPosition = endPosition;
-		var closedNodes = new List<PathTreeNode>();
-		var possibleNodes = new List<PathTreeNode>();
-		var openNodes = new List<PathTreeNode>
+		var closedNodes = new HashSet<Point>();
+		var bestNodes = new Dictionary<Point, PathTreeNode>
 		{
-			new (startPosition, null, 0)
+			[startPosition] = new (startPosition, null, 0)
 		};
+		var possibleNode = (PathTreeNode)null;
+		var openNodes = new PriorityQueue<PathTreeNode, int>();
+		openNodes.Enqueue(bestNodes[startPosition], 0);
 
 		var destinationPoints = GetDestinationPoints(endPosition, userData);
 
-		while (true)
+		while (openNodes.Count > 0)
 		{
-			if (openNodes.Count == 0)
-			{
-				if (possibleNodes.Any())
-					return CreatePath(possibleNodes.First(), out depth, userData);
-
-				depth = 0;
-				return Array.Empty<Point>();
-			}
-
-			openNodes.Sort((node1, node2) => node1.Weight.CompareTo(node2.Weight));
-
-			var currentNode = openNodes[0];
+			var currentNode = openNodes.Dequeue();
 			var currentPosition = currentNode.Position;
-			if (!closedNodes.Contains(currentNode))
+			if (closedNodes.Contains(currentPosition))
+				continue;
+
+			if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact) && currentPosition == endPosition)
+				return CreatePath(currentNode, out depth, userData);
+
+			if (destinationPoints != null && destinationPoints.Contains(currentPosition))
 			{
-				if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact) && currentPosition == endPosition)
+				if (!userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact))
 					return CreatePath(currentNode, out depth, userData);
 
-				if (destinationPoints != null && destinationPoints.Any(x => x == currentPosition))
-				{
-					if (!userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact))
-						return CreatePath(currentNode, out depth, userData);
-					possibleNodes.Add(currentNode);
-				}
-
-				var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, endPosition, userData);
-				var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, endPosition, userData);
-				var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, endPosition, userData);
-				var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, endPosition, userData);
-
-				if (left != null && up != null)
-					ProcessNode(currentNode, -1, -1, openNodes, closedNodes, endPosition, userData);
-
-				if (right != null && up != null)
-					ProcessNode(currentNode, 1, -1, openNodes, closedNodes, endPosition, userData);
-
-				if (right != null && down != null)
-					ProcessNode(currentNode, 1, 1, openNodes, closedNodes, endPosition, userData);
-
-				if (left != null && down != null)
-					ProcessNode(currentNode, -1, 1, openNodes, closedNodes, endPosition, userData);
-
-				closedNodes.Add(currentNode);
+				possibleNode ??= currentNode;
 			}
 
-			openNodes.RemoveAt(0);
+			var left = ProcessNode(currentNode, -1, 0, openNodes, closedNodes, bestNodes, endPosition, userData);
+			var up = ProcessNode(currentNode, 0, -1, openNodes, closedNodes, bestNodes, endPosition, userData);
+			var right = ProcessNode(currentNode, 1, 0, openNodes, closedNodes, bestNodes, endPosition, userData);
+			var down = ProcessNode(currentNode, 0, 1, openNodes, closedNodes, bestNodes, endPosition, userData);
+
+			if (left != null && up != null)
+				ProcessNode(currentNode, -1, -1, openNodes, closedNodes, bestNodes, endPosition, userData);
+
+			if (right != null && up != null)
+				ProcessNode(currentNode, 1, -1, openNodes, closedNodes, bestNodes, endPosition, userData);
+
+			if (right != null && down != null)
+				ProcessNode(currentNode, 1, 1, openNodes, closedNodes, bestNodes, endPosition, userData);
+
+			if (left != null && down != null)
+				ProcessNode(currentNode, -1, 1, openNodes, closedNodes, bestNodes, endPosition, userData);
+
+			closedNodes.Add(currentPosition);
 		}
+
+		if (possibleNode != null)
+			return CreatePath(possibleNode, out depth, userData);
+
+		depth = 0;
+		return Array.Empty<Point>();
 	}
 
 	/// <summary>
@@ -169,25 +165,42 @@ public sealed class Pathfinder
 	}
 
 	/// <summary>
-	///     Determines if any of the specified nodes are at the point.
+	///     Calculates the neighbors of a specific point based on the DestinationMode property of <paramref name="userData" />.
 	/// </summary>
-	/// <param name="nodes">The nodes.</param>
-	/// <param name="point">The point.</param>
+	/// <param name="endPosition">The destination point.</param>
+	/// <param name="userData">The data provided by the user.</param>
 	/// <returns>
-	///     <c>true</c> if any of the points are at the point; otherwise, <c>false</c>.
+	///     Null if the DestinationMode property of <paramref name="userData" /> is
+	///     <see cref="DestinationModeFlags.Exact" />, otherwise an array of neighbor points.
 	/// </returns>
-	private static bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, Point point) => AnyNodeIsAtPoint(nodes, point.X, point.Y);
+	/// <exception cref="ArgumentOutOfRangeException">
+	///     If userData.DestinationMode is not a valid
+	///     <see cref="DestinationModeFlags" /> value.
+	/// </exception>
+	private static Point[] GetDestinationPoints(Point endPosition, FindPathData userData)
+	{
+		if (userData.DestinationModeFlags == DestinationModeFlags.Exact)
+			return null;
 
-	/// <summary>
-	///     Determines if any of the specified nodes are at the point.
-	/// </summary>
-	/// <param name="nodes">The nodes.</param>
-	/// <param name="column">The column.</param>
-	/// <param name="row">The row.</param>
-	/// <returns>
-	///     <c>true</c> if any of the points are at the point; otherwise, <c>false</c>.
-	/// </returns>
-	private static bool AnyNodeIsAtPoint(IEnumerable<PathTreeNode> nodes, int column, int row) => nodes.Any(node => node.Position.X == column && node.Position.Y == row);
+		var output = new List<Point>(8);
+		if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.CardinalNeighbor))
+		{
+			output.Add(new Point(endPosition.X - 1, endPosition.Y));
+			output.Add(new Point(endPosition.X, endPosition.Y - 1));
+			output.Add(new Point(endPosition.X + 1, endPosition.Y));
+			output.Add(new Point(endPosition.X, endPosition.Y + 1));
+		}
+
+		if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.IntercardinalNeighbor))
+		{
+			output.Add(new Point(endPosition.X - 1, endPosition.Y - 1));
+			output.Add(new Point(endPosition.X + 1, endPosition.Y - 1));
+			output.Add(new Point(endPosition.X + 1, endPosition.Y + 1));
+			output.Add(new Point(endPosition.X - 1, endPosition.Y + 1));
+		}
+
+		return output.Count == 0 ? null : output.ToArray();
+	}
 
 	/// <summary>
 	///     Creates the path.
@@ -202,9 +215,11 @@ public sealed class Pathfinder
 		var parent = node;
 		while (parent != null)
 		{
-			output.Insert(0, parent.Position);
+			output.Add(parent.Position);
 			parent = parent.Parent;
 		}
+
+		output.Reverse();
 
 		if (userData != null)
 		{
@@ -247,44 +262,6 @@ public sealed class Pathfinder
 	}
 
 	/// <summary>
-	///     Calculates the neighbors of a specific point based on the DestinationMode property of <paramref name="userData" />.
-	/// </summary>
-	/// <param name="endPosition">The destination point.</param>
-	/// <param name="userData">The data provided by the user.</param>
-	/// <returns>
-	///     Null if the DestinationMode property of <paramref name="userData" /> is
-	///     <see cref="DestinationModeFlags.Exact" />, otherwise an array of neighbor points.
-	/// </returns>
-	/// <exception cref="ArgumentOutOfRangeException">
-	///     If userData.DestinationMode is not a valid
-	///     <see cref="DestinationModeFlags" /> value.
-	/// </exception>
-	private static Point[] GetDestinationPoints(Point endPosition, FindPathData userData)
-	{
-		if (userData.DestinationModeFlags == DestinationModeFlags.Exact)
-			return null;
-
-		var output = new List<Point>(8);
-		if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.CardinalNeighbor))
-		{
-			output.Add(new Point(endPosition.X - 1, endPosition.Y));
-			output.Add(new Point(endPosition.X, endPosition.Y - 1));
-			output.Add(new Point(endPosition.X + 1, endPosition.Y));
-			output.Add(new Point(endPosition.X, endPosition.Y + 1));
-		}
-
-		if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.IntercardinalNeighbor))
-		{
-			output.Add(new Point(endPosition.X - 1, endPosition.Y - 1));
-			output.Add(new Point(endPosition.X + 1, endPosition.Y - 1));
-			output.Add(new Point(endPosition.X + 1, endPosition.Y + 1));
-			output.Add(new Point(endPosition.X - 1, endPosition.Y + 1));
-		}
-
-		return output.Count == 0 ? null : output.ToArray();
-	}
-
-	/// <summary>
 	///     Processes the node.
 	/// </summary>
 	/// <param name="currentNode">The current node.</param>
@@ -295,15 +272,19 @@ public sealed class Pathfinder
 	/// <param name="endPosition">The end position.</param>
 	/// <param name="userData">The user data.</param>
 	/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
-	private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, ICollection<PathTreeNode> openNodes, IEnumerable<PathTreeNode> closedNodes, Point endPosition, FindPathData userData)
+	private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, PriorityQueue<PathTreeNode, int> openNodes, ISet<Point> closedNodes, IDictionary<Point, PathTreeNode> bestNodes, Point endPosition, FindPathData userData)
 	{
 		var position = new Point(currentNode.Position.X + columnOffset, currentNode.Position.Y + rowOffset);
-		var weight = currentNode.Weight + userData?.GetWeight(position, endPosition) ?? 0;
+		var weight = currentNode.Weight + (userData?.GetMovementWeight(currentNode.Position, position) ?? 0) + (userData?.GetWeight(position, endPosition) ?? 0);
 		var newNode = new PathTreeNode(position, currentNode, weight);
-		if ((CheckNode != null && !CheckNode(newNode.Position.X, newNode.Position.Y, userData)) || AnyNodeIsAtPoint(closedNodes, newNode.Position) || AnyNodeIsAtPoint(openNodes, newNode.Position))
+		if ((CheckNode != null && !CheckNode(newNode.Position.X, newNode.Position.Y, userData)) || closedNodes.Contains(position))
 			return null;
 
-		openNodes.Add(newNode);
+		if (bestNodes.TryGetValue(position, out var bestNode) && bestNode.Weight <= weight)
+			return null;
+
+		bestNodes[position] = newNode;
+		openNodes.Enqueue(newNode, weight);
 		return newNode;
 	}
 	#endregion

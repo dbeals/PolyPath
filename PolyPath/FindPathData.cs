@@ -49,6 +49,14 @@ public class FindPathData
 	public virtual int GetWeight(Point nodePosition, Point endPosition) => 1;
 
 	/// <summary>
+	///     Gets the movement weight for stepping from the current node to the next node.
+	/// </summary>
+	/// <param name="currentPosition">The current node position.</param>
+	/// <param name="nodePosition">The next node position.</param>
+	/// <returns>The numeric weight of moving between the two nodes.</returns>
+	public virtual int GetMovementWeight(Point currentPosition, Point nodePosition) => 0;
+
+	/// <summary>
 	///     Pops the waypoint test.
 	/// </summary>
 	/// <param name="waypointPosition">The waypoint position.</param>
