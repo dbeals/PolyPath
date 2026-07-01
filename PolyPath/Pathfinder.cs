@@ -119,12 +119,12 @@ public sealed class Pathfinder
 				continue;
 
 			if (userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact) && currentPosition == endPosition)
-				return CreatePath(currentNode, out depth, userData);
+				return CreatePath(currentNode, out depth, userData, pathingGrid, endPosition);
 
 			if (destinationPoints != null && destinationPoints.Contains(currentPosition))
 			{
 				if (!userData.DestinationModeFlags.HasFlag(DestinationModeFlags.Exact))
-					return CreatePath(currentNode, out depth, userData);
+					return CreatePath(currentNode, out depth, userData, pathingGrid, endPosition);
 
 				possibleNode ??= currentNode;
 			}
@@ -150,7 +150,7 @@ public sealed class Pathfinder
 		}
 
 		if (possibleNode != null)
-			return CreatePath(possibleNode, out depth, userData);
+			return CreatePath(possibleNode, out depth, userData, pathingGrid, endPosition);
 
 		depth = 0;
 		return Array.Empty<Point>();
@@ -267,7 +267,7 @@ public sealed class Pathfinder
 	/// <param name="depth">An output variable; the depth of the path.</param>
 	/// <param name="userData">The user data.</param>
 	/// <returns>A list of points defining the found path.</returns>
-	private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData)
+	private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData, IPathingGrid pathingGrid, Point endPosition)
 	{
 		var output = new List<Point>();
 		var parent = node;
@@ -315,7 +315,15 @@ public sealed class Pathfinder
 		depth = output.Count;
 
 		var initialWaypoints = output.ToArray();
-		output = Processors.Aggregate(output, (current, processor) => processor.Process(current, initialWaypoints));
+		var processorContext = new PathProcessorContext
+		{
+			InitialWaypoints = initialWaypoints,
+			GetNodeWeight = point => userData?.GetWeight(point, endPosition) ?? 0,
+			GetStepWeight = (from, to) => (userData?.GetMovementWeight(from, to) ?? 0) + (userData?.GetWeight(to, endPosition) ?? 0),
+			IsNodePathable = point => IsNodePathable(point, userData, pathingGrid),
+			PathingGrid = pathingGrid
+		};
+		output = Processors.Aggregate(output, (current, processor) => processor.Process(current, processorContext));
 		return output.ToArray();
 	}
 

@@ -164,13 +164,13 @@ public class GameEngine : GameEngineBase
 		{
 			string text;
 			if (!_pathingPolygon.IsClosed)
-				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click: Add polygon points\nRight Click: Clear Polygon\nClick on the first point to close polygon";
+				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nEnter: {1} smooth paths\nTab: {2} tight checks\nLeft Click: Add polygon points\nRight Click: Clear Polygon\nClick on the first point to close polygon";
 			else if (_startNode == null)
-				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set start point\nRight Click: Clear polygon";
+				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nEnter: {1} smooth paths\nTab: {2} tight checks\nLeft Click Node: Set start point\nRight Click: Clear polygon";
 			else
-				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nTab: {1} tight checks\nLeft Click Node: Set end point\nRight Click: Clear start node";
+				text = "F1: Show/Hide help\nEsc: Exit\nSpace: {0} trim paths\nEnter: {1} smooth paths\nTab: {2} tight checks\nLeft Click Node: Set end point\nRight Click: Clear start node";
 
-			text = string.Format(text, TrimPathProcessor.IsTrimmingPaths(_pathfinder) ? "Disable" : "Enable", _pathingPolygon.UseTightTests ? "Disable" : "Enable");
+			text = string.Format(text, TrimPathProcessor.IsTrimmingPaths(_pathfinder) ? "Disable" : "Enable", SmoothPathProcessor.IsSmoothingPaths(_pathfinder) ? "Disable" : "Enable", _pathingPolygon.UseTightTests ? "Disable" : "Enable");
 
 			Batch.DrawString(UIFont, text, new Vector2(0, 0), Color.White);
 		}
@@ -214,6 +214,14 @@ public class GameEngine : GameEngineBase
 			case Keys.Space:
 			{
 				TrimPathProcessor.ToggleTrimming(_pathfinder);
+				if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
+					_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
+				break;
+			}
+
+			case Keys.Enter:
+			{
+				SmoothPathProcessor.ToggleSmoothing(_pathfinder);
 				if (_pathingPolygon.IsClosed && _startNode != null && _endNode != null)
 					_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 				break;

@@ -43,25 +43,6 @@ public class TrimPathProcessor : IPathProcessor
 	/// </returns>
 	public static bool IsTrimmingPaths(Pathfinder pathfinder) => pathfinder.Processors.Any(x => x is TrimPathProcessor);
 
-	public List<Point> Process(List<Point> input, Point[] initialWaypoints)
-	{
-		var indicesToRemove = new List<int>();
-		for (var index = 1; index < input.Count - 1; ++index)
-		{
-			var previousPoint = input[index - 1];
-			var currentPoint = input[index];
-			var nextPoint = input[index + 1];
-
-			if (PointsContinueHorizontally(previousPoint, currentPoint, nextPoint) || PointsContinuesVertically(previousPoint, currentPoint, nextPoint) || PointsContinueDiagonally(previousPoint, currentPoint, nextPoint))
-				indicesToRemove.Add(index);
-		}
-
-		for (var index = indicesToRemove.Count - 1; index >= 0; --index)
-			input.RemoveAt(indicesToRemove[index]);
-
-		return input;
-	}
-
 	/// <summary>
 	///     Helper method to toggle trimming of paths in a pathfinder.
 	/// </summary>
@@ -80,6 +61,31 @@ public class TrimPathProcessor : IPathProcessor
 
 		pathfinder.Processors.Add(new TrimPathProcessor());
 		return true;
+	}
+
+	public List<Point> Process(List<Point> input, Point[] initialWaypoints) =>
+		Process(input, new PathProcessorContext
+		{
+			InitialWaypoints = initialWaypoints
+		});
+
+	public List<Point> Process(List<Point> input, PathProcessorContext context)
+	{
+		var indicesToRemove = new List<int>();
+		for (var index = 1; index < input.Count - 1; ++index)
+		{
+			var previousPoint = input[index - 1];
+			var currentPoint = input[index];
+			var nextPoint = input[index + 1];
+
+			if (PointsContinueHorizontally(previousPoint, currentPoint, nextPoint) || PointsContinuesVertically(previousPoint, currentPoint, nextPoint) || PointsContinueDiagonally(previousPoint, currentPoint, nextPoint))
+				indicesToRemove.Add(index);
+		}
+
+		for (var index = indicesToRemove.Count - 1; index >= 0; --index)
+			input.RemoveAt(indicesToRemove[index]);
+
+		return input;
 	}
 
 	/// <summary>
