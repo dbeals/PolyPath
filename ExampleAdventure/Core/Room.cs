@@ -34,7 +34,7 @@ public class Room
 {
 	#region Properties
 	public Rectangle Bounds => new (Column, Row, Width, Height);
-	public List<Point> Doorways { get; } = new ();
+	public List<Point> Doorways { get; } = [];
 	public int Column { get; set; }
 	public int Height { get; set; }
 	public int Row { get; set; }

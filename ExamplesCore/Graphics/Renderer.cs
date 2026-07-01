@@ -80,10 +80,9 @@ public sealed class Renderer
 	public void LoadContent()
 	{
 		_pixelTexture = new Texture2D(_spriteBatch.GraphicsDevice, 1, 1);
-		_pixelTexture.SetData(new[]
-		{
+		_pixelTexture.SetData([
 			Color.White
-		});
+		]);
 	}
 
 	public void UnloadContent()

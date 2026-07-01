@@ -25,7 +25,7 @@
 // For more information, please refer to <http://unlicense.org>
 // ***********************************************************************/
 
-using ExampleGame;
+using BasicExample;
 
 using var game = new GameEngine();
 game.Run();

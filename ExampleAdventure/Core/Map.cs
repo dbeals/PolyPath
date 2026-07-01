@@ -47,7 +47,7 @@ public class Map
 		}
 	}
 
-	public List<Room> Rooms { get; } = new ();
+	public List<Room> Rooms { get; } = [];
 	public int Width { get; }
 	#endregion
 
@@ -82,14 +82,7 @@ public class Map
 			return false;
 
 		var node = this[column, row];
-		if (node.Material == Material.None)
-			return false;
-		if (node.Material == Material.Wall)
-			return false;
-		if (node.Material == Material.Water)
-			return false;
-
-		return true;
+		return node.Material is not (Material.None or Material.Wall or Material.Water);
 	}
 	#endregion
 }

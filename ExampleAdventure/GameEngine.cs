@@ -52,7 +52,7 @@ public class GameEngine : GameEngineBase
 	#endregion
 
 	#region Properties
-	public List<Entity> Entities { get; } = new ();
+	public List<Entity> Entities { get; } = [];
 	public BrushSet Brushes { get; set; }
 	public Map Map { get; set; }
 	public Entity Player { get; set; }
@@ -92,12 +92,12 @@ public class GameEngine : GameEngineBase
 
 		// Commenting out edit mode for now.
 		//if (e.EventType == KeyState.Up && e.Key == Keys.F5)
-			//_isEditMode = !_isEditMode;
+		//_isEditMode = !_isEditMode;
 
 		if (_isEditMode)
-			HandleEditorKeyboardInput(sender, e);
+			HandleEditorKeyboardInput(e);
 		else
-			HandleGameKeyboardInput(sender, e);
+			HandleGameKeyboardInput(e);
 	}
 
 	protected override void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e)
@@ -105,9 +105,9 @@ public class GameEngine : GameEngineBase
 		base.OnMouseButtonStateChanged(sender, e);
 
 		if (_isEditMode)
-			HandleEditorMouseInput(sender, e);
+			HandleEditorMouseInput(e);
 		else
-			HandleGameMouseInput(sender, e);
+			HandleGameMouseInput(e);
 	}
 
 	protected override void OnMouseMoved(object sender, MouseMoveEventArgs e)
@@ -191,7 +191,7 @@ public class GameEngine : GameEngineBase
 		}
 	}
 
-	private void HandleEditorKeyboardInput(object sender, KeyEventArgs e)
+	private void HandleEditorKeyboardInput(KeyEventArgs e)
 	{
 		if (e.EventType != KeyState.Up)
 			return;
@@ -208,7 +208,7 @@ public class GameEngine : GameEngineBase
 		};
 	}
 
-	private void HandleEditorMouseInput(object sender, MouseButtonEventArgs e)
+	private void HandleEditorMouseInput(MouseButtonEventArgs e)
 	{
 		switch (e.EventType)
 		{
@@ -244,7 +244,7 @@ public class GameEngine : GameEngineBase
 		}
 	}
 
-	private void HandleGameKeyboardInput(object sender, KeyEventArgs e)
+	private void HandleGameKeyboardInput(KeyEventArgs e)
 	{
 		if (e.EventType != KeyState.Up)
 			return;
@@ -268,7 +268,7 @@ public class GameEngine : GameEngineBase
 		}
 	}
 
-	private void HandleGameMouseInput(object sender, MouseButtonEventArgs e)
+	private void HandleGameMouseInput(MouseButtonEventArgs e)
 	{
 		if (e.EventType != ButtonState.Released)
 			return;
@@ -291,7 +291,7 @@ public class GameEngine : GameEngineBase
 					return false;
 
 				return !(from entity in Entities
-					where entity.IsPlayer == false && entity.Column == testColumn && entity.Row == testRow
+					where !entity.IsPlayer && entity.Column == testColumn && entity.Row == testRow
 					select entity).Any();
 			}
 		};
@@ -374,7 +374,7 @@ public class GameEngine : GameEngineBase
 		var row = 0;
 		var tryCount = 0;
 
-		if (Map.Rooms.Any())
+		if (Map.Rooms.Count != 0)
 		{
 			var room = Map.Rooms[Rng.Next(0, Map.Rooms.Count)];
 			column = Rng.Next(room.Bounds.Left + 1, room.Bounds.Right - 1);
@@ -402,13 +402,13 @@ public class GameEngine : GameEngineBase
 		return true;
 	}
 
-	private bool InitializeRat()
+	private void InitializeRat()
 	{
 		var column = 0;
 		var row = 0;
 		var tryCount = 0;
 
-		if (Map.Rooms.Any())
+		if (Map.Rooms.Count != 0)
 		{
 			var room = Map.Rooms[Rng.Next(0, Map.Rooms.Count)];
 			column = Rng.Next(room.Bounds.Left + 2, room.Bounds.Right - 2);
@@ -420,7 +420,7 @@ public class GameEngine : GameEngineBase
 				row = Rng.Next(room.Bounds.Top + 2, room.Bounds.Bottom - 2);
 				++tryCount;
 				if (tryCount >= 15)
-					return false; // We failed to place it 15 times, give up.
+					return;
 			}
 		}
 
@@ -431,7 +431,6 @@ public class GameEngine : GameEngineBase
 			Row = row,
 			IsPlayer = false
 		});
-		return true;
 	}
 
 	private void SetMapNode(int column, int row, Material material)

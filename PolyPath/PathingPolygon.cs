@@ -42,7 +42,7 @@ public sealed class PathingPolygon : IPathingGrid
 	public int NodeHeight { get; private set; }
 	public PathingGridNode[] Nodes { get; private set; }
 	public int NodeWidth { get; private set; }
-	public List<Point> Points { get; private set; }
+	public List<Point> Points { get; private set; } = [];
 
 	/// <summary>
 	///     When true, all 4 corners of a node will be used when determining if the node is inside of the polygon.
@@ -52,14 +52,6 @@ public sealed class PathingPolygon : IPathingGrid
 	public bool UseTightTests { get; set; }
 
 	public int Width { get; private set; }
-	#endregion
-
-	#region Constructors
-	public PathingPolygon()
-	{
-		IsClosed = false;
-		Points = new List<Point>();
-	}
 	#endregion
 
 	#region Methods
@@ -73,7 +65,7 @@ public sealed class PathingPolygon : IPathingGrid
 		Bounds = Rectangle.Empty;
 		NodeWidth = 0;
 		NodeHeight = 0;
-		Nodes = new PathingGridNode[0];
+		Nodes = [];
 		Points.Clear();
 		IsClosed = false;
 	}

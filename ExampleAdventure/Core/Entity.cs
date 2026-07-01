@@ -32,7 +32,6 @@ namespace ExampleAdventure.Core;
 public class Entity
 {
 	#region Variables
-	private readonly float _moveDelay = 0.25f;
 	private float _moveTimeElapsed;
 	#endregion
 
@@ -50,17 +49,18 @@ public class Entity
 		if (Path.NextWaypoint != null)
 		{
 			_moveTimeElapsed += delta;
-			if (_moveTimeElapsed >= _moveDelay)
-			{
-				var target = Path.NextWaypoint.Value;
-				Column = (int)target.X;
-				Row = (int)target.Y;
-				Path.PopWaypoint();
-				_moveTimeElapsed = 0f;
-			}
+			if (!(_moveTimeElapsed >= _moveDelay))
+				return;
+
+			var target = Path.NextWaypoint.Value;
+			Column = (int)target.X;
+			Row = (int)target.Y;
+			Path.PopWaypoint();
 		}
-		else
-			_moveTimeElapsed = 0f;
+
+		_moveTimeElapsed = 0f;
 	}
 	#endregion
+
+	private const float _moveDelay = 0.25f;
 }

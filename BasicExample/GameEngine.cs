@@ -35,7 +35,7 @@ using Microsoft.Xna.Framework.Input;
 using PolyPath;
 using PolyPath.Processors;
 
-namespace ExampleGame;
+namespace BasicExample;
 
 public class GameEngine : GameEngineBase
 {
@@ -70,7 +70,7 @@ public class GameEngine : GameEngineBase
 		public override int GetWeight(Point waypointPosition, Point endPosition)
 		{
 			var key = new Tuple<int, int>(waypointPosition.X, waypointPosition.Y);
-			return (_weights.TryGetValue(key, out var weight) ? weight : 0) * Scalar;
+			return _weights.GetValueOrDefault(key, 0) * Scalar;
 		}
 
 		public void IncrementWeight(int column, int row)
@@ -117,32 +117,6 @@ public class GameEngine : GameEngineBase
 		var boxColor = Color.Maroon;
 		var lineColor = Color.Red;
 
-		void DrawLine(Vector3 start, Vector3 end, int index)
-		{
-			const int boxSize = 8;
-			const int boxOffset = boxSize / 2;
-
-			var (startX, startY, _) = start;
-			if (index == 0)
-				Renderer.FillRectangle(new Rectangle((int)startX - boxOffset, (int)startY - boxOffset, boxSize, boxSize), boxColor);
-
-			var (endX, endY, _) = end;
-			Renderer.FillRectangle(new Rectangle((int)endX - boxOffset, (int)endY - boxOffset, boxSize, boxSize), boxColor);
-			Renderer.DrawLine(startX, startY, endX, endY, lineColor);
-		}
-
-		void DrawNode(PathingGridNode node)
-		{
-			var weight = _userData.GetWeight(new Point(node.Column, node.Row), Point.Zero);
-
-			var color = Color.Lerp(Color.White, Color.Red, weight / (CustomFindPathData.Scalar * 3f));
-
-			if (color == Color.White)
-				Renderer.DrawRectangle(node.Bounds, color);
-			else
-				Renderer.FillRectangle(node.Bounds, color);
-		}
-
 		_pathingPolygon.DebugDraw(DrawLine, DrawNode);
 
 		if (_pathingPolygon.IsClosed)
@@ -177,6 +151,33 @@ public class GameEngine : GameEngineBase
 
 		Batch.End();
 		base.Draw(gameTime);
+		return;
+
+		void DrawLine(Vector3 start, Vector3 end, int index)
+		{
+			const int boxSize = 8;
+			const int boxOffset = boxSize / 2;
+
+			var (startX, startY, _) = start;
+			if (index == 0)
+				Renderer.FillRectangle(new Rectangle((int)startX - boxOffset, (int)startY - boxOffset, boxSize, boxSize), boxColor);
+
+			var (endX, endY, _) = end;
+			Renderer.FillRectangle(new Rectangle((int)endX - boxOffset, (int)endY - boxOffset, boxSize, boxSize), boxColor);
+			Renderer.DrawLine(startX, startY, endX, endY, lineColor);
+		}
+
+		void DrawNode(PathingGridNode node)
+		{
+			var weight = _userData.GetWeight(new Point(node.Column, node.Row), Point.Zero);
+
+			var color = Color.Lerp(Color.White, Color.Red, weight / (CustomFindPathData.Scalar * 3f));
+
+			if (color == Color.White)
+				Renderer.DrawRectangle(node.Bounds, color);
+			else
+				Renderer.FillRectangle(node.Bounds, color);
+		}
 	}
 
 	protected override void OnKeyStateChanged(object sender, KeyEventArgs e)
@@ -246,17 +247,13 @@ public class GameEngine : GameEngineBase
 			{
 				if (_pathingPolygon.Points.Count > 1)
 				{
-					using (var stream = File.Create("polygon.txt"))
+					using var stream = File.Create("polygon.txt");
+					using var writer = new BinaryWriter(stream);
+					writer.Write(_pathingPolygon.Points.Count);
+					foreach (var point in _pathingPolygon.Points)
 					{
-						using (var writer = new BinaryWriter(stream))
-						{
-							writer.Write(_pathingPolygon.Points.Count);
-							foreach (var point in _pathingPolygon.Points)
-							{
-								writer.Write(point.X);
-								writer.Write(point.Y);
-							}
-						}
+						writer.Write(point.X);
+						writer.Write(point.Y);
 					}
 				}
 
@@ -267,23 +264,19 @@ public class GameEngine : GameEngineBase
 			{
 				if (File.Exists("polygon.txt"))
 				{
-					using (var stream = File.OpenRead("polygon.txt"))
-					{
-						using (var reader = new BinaryReader(stream))
-						{
-							_startNode = null;
-							_endNode = null;
-							_pathingPolygon.Clear();
-							_path = null;
+					using var stream = File.OpenRead("polygon.txt");
+					using var reader = new BinaryReader(stream);
+					_startNode = null;
+					_endNode = null;
+					_pathingPolygon.Clear();
+					_path = null;
 
-							var count = reader.ReadInt32();
-							for (var index = 0; index < count; ++index)
-								_pathingPolygon.Points.Add(new Point(reader.ReadInt32(), reader.ReadInt32()));
-							_pathingPolygon.Close();
-							_pathingPolygon.CreateGrid(16, 16);
-							_userData.Clear();
-						}
-					}
+					var count = reader.ReadInt32();
+					for (var index = 0; index < count; ++index)
+						_pathingPolygon.Points.Add(new Point(reader.ReadInt32(), reader.ReadInt32()));
+					_pathingPolygon.Close();
+					_pathingPolygon.CreateGrid(16, 16);
+					_userData.Clear();
 				}
 
 				break;
@@ -315,53 +308,51 @@ public class GameEngine : GameEngineBase
 	{
 		if (_pathingPolygon.IsClosed && e.Button == MouseButtons.Right && e.EventType == ButtonState.Released)
 		{
-			var boxSize = 8;
-			var boxOffset = boxSize / 2;
+			const int boxSize = 8;
+			const int boxOffset = boxSize / 2;
 			var removedPoint = false;
 			for (var index = 0; index < _pathingPolygon.Points.Count; ++index)
 			{
 				var point = _pathingPolygon.Points[index];
 				var bounds = new Rectangle(point.X - boxOffset, point.Y - boxOffset, boxSize, boxSize);
-				if (bounds.Contains(e.Position))
-				{
-					_pathingPolygon.Points.RemoveAt(index);
-					removedPoint = true;
-					break;
-				}
+				if (!bounds.Contains(e.Position))
+					continue;
+
+				_pathingPolygon.Points.RemoveAt(index);
+				removedPoint = true;
+				break;
 			}
 
-			if (!removedPoint)
+			if (removedPoint)
+				return;
+
+			if (_startNode != null)
 			{
-				if (_startNode != null)
-				{
-					_startNode = null;
-					_endNode = null;
-					_path = null;
-				}
-				else
-				{
-					_pathingPolygon.Clear();
-					_path = null;
-				}
+				_startNode = null;
+				_endNode = null;
 			}
+			else
+				_pathingPolygon.Clear();
+
+			_path = null;
 		}
 		else if (e.Button == MouseButtons.Left && e.EventType == ButtonState.Pressed)
 		{
-			var boxSize = 8;
-			var boxOffset = boxSize / 2;
+			const int boxSize = 8;
+			const int boxOffset = boxSize / 2;
 			_selectPointIndex = -1;
 			for (var index = 0; index < _pathingPolygon.Points.Count; ++index)
 			{
 				var point = _pathingPolygon.Points[index];
 				var bounds = new Rectangle(point.X - boxOffset, point.Y - boxOffset, boxSize, boxSize);
-				if (bounds.Contains(e.Position))
-				{
-					_selectPointIndex = index;
-					_path?.Clear();
-					_startNode = null;
-					_endNode = null;
-					break;
-				}
+				if (!bounds.Contains(e.Position))
+					continue;
+
+				_selectPointIndex = index;
+				_path?.Clear();
+				_startNode = null;
+				_endNode = null;
+				break;
 			}
 		}
 		else if (e.Button == MouseButtons.Left && e.EventType == ButtonState.Released)
@@ -388,11 +379,11 @@ public class GameEngine : GameEngineBase
 					_pathingPolygon.Close();
 
 				_selectPointIndex = -1;
-				if (_pathingPolygon.IsClosed)
-				{
-					_pathingPolygon.CreateGrid(16, 16);
-					_userData.Clear();
-				}
+				if (!_pathingPolygon.IsClosed)
+					return;
+
+				_pathingPolygon.CreateGrid(16, 16);
+				_userData.Clear();
 			}
 			else if (!_pathingPolygon.IsClosed)
 			{
@@ -408,15 +399,15 @@ public class GameEngine : GameEngineBase
 			else
 			{
 				var node = _pathingPolygon.GetNodeAtXY(e.Position);
-				if (node.IsPathable)
+				if (!node.IsPathable)
+					return;
+
+				if (_startNode == null)
+					_startNode = node;
+				else
 				{
-					if (_startNode == null)
-						_startNode = node;
-					else
-					{
-						_endNode = node;
-						_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
-					}
+					_endNode = node;
+					_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
 				}
 			}
 		}
@@ -424,28 +415,26 @@ public class GameEngine : GameEngineBase
 
 	protected override void OnMouseMoved(object sender, MouseMoveEventArgs e)
 	{
-		if (Manager.MouseState.LeftButton == ButtonState.Pressed)
+		if (Manager.MouseState.LeftButton != ButtonState.Pressed)
+			return;
+		if (_pathingPolygon.IsClosed && _startNode != null && _selectPointIndex == -1)
 		{
-			if (_pathingPolygon.IsClosed && _startNode != null && _selectPointIndex == -1)
-			{
-				var node = _pathingPolygon.GetNodeAtXY(e.Position);
-				if (node.IsPathable)
-				{
-					_endNode = node;
-					_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
-				}
-			}
-			else if (_selectPointIndex != -1)
-			{
-				var offset = e.Offset;
-				if (Manager.KeyboardState.IsKeyDown(Keys.X))
-					offset.Y = 0;
-				else if (Manager.KeyboardState.IsKeyDown(Keys.Y))
-					offset.X = 0;
-				_pathingPolygon.Points[_selectPointIndex] += offset;
-				if (_selectPointIndex == 0 && _pathingPolygon.IsClosed)
-					_pathingPolygon.Points[_pathingPolygon.Points.Count - 1] += offset;
-			}
+			var node = _pathingPolygon.GetNodeAtXY(e.Position);
+			if (!node.IsPathable)
+				return;
+			_endNode = node;
+			_path = _pathfinder.FindPath(_startNode.Value.Column, _startNode.Value.Row, _endNode.Value.Column, _endNode.Value.Row, _pathingPolygon, _userData);
+		}
+		else if (_selectPointIndex != -1)
+		{
+			var offset = e.Offset;
+			if (Manager.KeyboardState.IsKeyDown(Keys.X))
+				offset.Y = 0;
+			else if (Manager.KeyboardState.IsKeyDown(Keys.Y))
+				offset.X = 0;
+			_pathingPolygon.Points[_selectPointIndex] += offset;
+			if (_selectPointIndex == 0 && _pathingPolygon.IsClosed)
+				_pathingPolygon.Points[^1] += offset;
 		}
 	}
 	#endregion

@@ -76,35 +76,11 @@ public static class MapGenerator
 			var useWaterPoint = true;
 			foreach (var doorway in room.Doorways)
 			{
-				if (waterColumn == doorway.X && waterRow == doorway.Y)
-				{
-					useWaterPoint = false;
-					break;
-				}
+				if (Math.Abs(waterColumn - doorway.X) + Math.Abs(waterRow - doorway.Y) > 1)
+					continue;
 
-				if (waterColumn == doorway.X - 1 && waterRow == doorway.Y)
-				{
-					useWaterPoint = false;
-					break;
-				}
-
-				if (waterColumn == doorway.X + 1 && waterRow == doorway.Y)
-				{
-					useWaterPoint = false;
-					break;
-				}
-
-				if (waterColumn == doorway.X && waterRow == doorway.Y - 1)
-				{
-					useWaterPoint = false;
-					break;
-				}
-
-				if (waterColumn == doorway.X && waterRow == doorway.Y + 1)
-				{
-					useWaterPoint = false;
-					break;
-				}
+				useWaterPoint = false;
+				break;
 			}
 
 			if (useWaterPoint)
@@ -162,11 +138,11 @@ public static class MapGenerator
 		foreach (var doorway in room.Doorways)
 			map[doorway.X + room.Column, doorway.Y + room.Row].Material = Material.Gravel;
 
-		if (room.WaterPoint != null)
-		{
-			var point = room.WaterPoint.Value;
-			map[point.X, point.Y].Material = Material.Water;
-		}
+		if (room.WaterPoint == null)
+			return;
+
+		var point = room.WaterPoint.Value;
+		map[point.X, point.Y].Material = Material.Water;
 	}
 
 	private static void ConnectRooms(Random random, Room initialRoom, Room newRoom, Direction direction)

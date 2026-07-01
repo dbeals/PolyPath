@@ -105,7 +105,7 @@ public sealed class Pathfinder
 		{
 			[startPosition] = new (startPosition, null, 0)
 		};
-		var possibleNode = (PathTreeNode)null;
+		PathTreeNode possibleNode = null;
 		var openNodes = new PriorityQueue<PathTreeNode, int>();
 		openNodes.Enqueue(bestNodes[startPosition], 0);
 
@@ -153,7 +153,7 @@ public sealed class Pathfinder
 			return CreatePath(possibleNode, out depth, userData, pathingGrid, endPosition);
 
 		depth = 0;
-		return Array.Empty<Point>();
+		return [];
 	}
 
 	/// <summary>
@@ -179,7 +179,7 @@ public sealed class Pathfinder
 	public WaypointPath FindPath(Point startPosition, Point endPosition, PathingPolygon pathingPolygon, FindPathData userData)
 	{
 		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData, pathingPolygon);
-		if (!pathPoints.Any())
+		if (pathPoints.Length == 0)
 			return new WaypointPath();
 
 		return new WaypointPath
@@ -212,7 +212,7 @@ public sealed class Pathfinder
 	public WaypointPath FindPath(Point startPosition, Point endPosition, IPathingGrid pathingGrid, FindPathData userData)
 	{
 		var pathPoints = FindPath(startPosition, endPosition, out var depth, userData, pathingGrid);
-		if (!pathPoints.Any())
+		if (pathPoints.Length == 0)
 			return new WaypointPath();
 
 		return new WaypointPath
@@ -266,6 +266,8 @@ public sealed class Pathfinder
 	/// <param name="node">The node.</param>
 	/// <param name="depth">An output variable; the depth of the path.</param>
 	/// <param name="userData">The user data.</param>
+	/// <param name="pathingGrid">The pathing grid.</param>
+	/// <param name="endPosition">The end position.</param>
 	/// <returns>A list of points defining the found path.</returns>
 	private Point[] CreatePath(PathTreeNode node, out int depth, FindPathData userData, IPathingGrid pathingGrid, Point endPosition)
 	{
@@ -335,8 +337,10 @@ public sealed class Pathfinder
 	/// <param name="rowOffset">The row offset.</param>
 	/// <param name="openNodes">The list of open nodes that will be added to as nodes are processed.</param>
 	/// <param name="closedNodes">The closed nodes.</param>
+	/// <param name="bestNodes">The best nodes.</param>
 	/// <param name="endPosition">The end position.</param>
 	/// <param name="userData">The user data.</param>
+	/// <param name="pathingGrid">The pathing grid.</param>
 	/// <returns>A new node positioned next to the current node based on columnOffset and rowOffset.</returns>
 	private PathTreeNode ProcessNode(PathTreeNode currentNode, int columnOffset, int rowOffset, PriorityQueue<PathTreeNode, int> openNodes, ISet<Point> closedNodes, IDictionary<Point, PathTreeNode> bestNodes, Point endPosition, FindPathData userData, IPathingGrid pathingGrid)
 	{

@@ -82,16 +82,12 @@ public abstract class GameEngineBase : Game
 		if (!File.Exists("Content/background.png"))
 			return;
 
-		using (var stream = File.OpenRead("Content/background.png"))
-		{
-			Background = Texture2D.FromStream(GraphicsDevice, stream);
-		}
+		using var stream = File.OpenRead("Content/background.png");
+		Background = Texture2D.FromStream(GraphicsDevice, stream);
 	}
 
 	protected virtual void OnKeyStateChanged(object sender, KeyEventArgs e) { }
-
 	protected virtual void OnMouseButtonStateChanged(object sender, MouseButtonEventArgs e) { }
-
 	protected virtual void OnMouseMoved(object sender, MouseMoveEventArgs e) { }
 
 	protected override void UnloadContent()

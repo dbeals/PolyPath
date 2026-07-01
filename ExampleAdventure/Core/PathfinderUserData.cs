@@ -61,12 +61,26 @@ public class PathfinderUserData : FindPathData
 			var node = Map[(int)startPoint.X, (int)startPoint.Y];
 			var material = node.Material;
 			output += (int)material;
-			if (material == Material.None)
-				output += 10000;
-			else if (material == Material.Wall)
-				output += 1000;
-			else if (material == Material.Water)
-				output += 100;
+			switch (material)
+			{
+				case Material.None:
+				{
+					output += 10000;
+					break;
+				}
+
+				case Material.Wall:
+				{
+					output += 1000;
+					break;
+				}
+
+				case Material.Water:
+				{
+					output += 100;
+					break;
+				}
+			}
 
 			var direction = Vector2.Normalize(endPoint - startPoint);
 			startPoint += direction;
