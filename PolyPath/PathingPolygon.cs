@@ -35,8 +35,10 @@ namespace PolyPath;
 public sealed class PathingPolygon : IPathingGrid
 {
 	#region Properties
+	public Point Origin => Bounds.Location;
 	public int Height { get; private set; }
 	public bool IsClosed { get; private set; }
+	public Rectangle Bounds { get; private set; }
 	public int NodeHeight { get; private set; }
 	public PathingGridNode[] Nodes { get; private set; }
 	public int NodeWidth { get; private set; }
@@ -68,6 +70,7 @@ public sealed class PathingPolygon : IPathingGrid
 	{
 		Width = 0;
 		Height = 0;
+		Bounds = Rectangle.Empty;
 		NodeWidth = 0;
 		NodeHeight = 0;
 		Nodes = new PathingGridNode[0];
@@ -120,9 +123,11 @@ public sealed class PathingPolygon : IPathingGrid
 				maxY = point.Y;
 		}
 
-		var bounds = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-		Width = (int)Math.Ceiling((double)bounds.Width / nodeWidth);
-		Height = (int)Math.Ceiling((double)bounds.Height / nodeHeight);
+		Bounds = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+		NodeWidth = nodeWidth;
+		NodeHeight = nodeHeight;
+		Width = (int)Math.Ceiling((double)Bounds.Width / nodeWidth);
+		Height = (int)Math.Ceiling((double)Bounds.Height / nodeHeight);
 		var output = new PathingGridNode[Width * Height];
 
 		var polygonPoints = Points.ToArray();
@@ -130,7 +135,7 @@ public sealed class PathingPolygon : IPathingGrid
 		{
 			for (var column = 0; column < Width; ++column)
 			{
-				var nodeBounds = new Rectangle(bounds.X + column * nodeWidth, bounds.Y + row * nodeHeight, nodeWidth, nodeHeight);
+				var nodeBounds = new Rectangle(Bounds.X + column * nodeWidth, Bounds.Y + row * nodeHeight, nodeWidth, nodeHeight);
 				output[row * Width + column] = new PathingGridNode(column, row, nodeBounds, IsRectangleInsidePolygon(polygonPoints, nodeBounds, UseTightTests));
 			}
 		}
@@ -183,6 +188,37 @@ public sealed class PathingPolygon : IPathingGrid
 	public PathingGridNode GetNodeAtColumnRow(Point point) => GetNodeAtColumnRow(point.X, point.Y);
 
 	/// <summary>
+	///     Tries to get the node at column/row.
+	/// </summary>
+	/// <param name="column">The column.</param>
+	/// <param name="row">The row.</param>
+	/// <param name="node">The node at the specified position if it exists; otherwise, an empty node.</param>
+	/// <returns>
+	///     <c>true</c> if column/row is inside the bounds of the grid; otherwise, <c>false</c>.
+	/// </returns>
+	public bool TryGetNodeAtColumnRow(int column, int row, out PathingGridNode node)
+	{
+		if (!ContainsColumnRow(column, row))
+		{
+			node = new PathingGridNode(-1, -1, Rectangle.Empty, false);
+			return false;
+		}
+
+		node = GetNodeAtColumnRow(column, row);
+		return true;
+	}
+
+	/// <summary>
+	///     Tries to get the node at column/row.
+	/// </summary>
+	/// <param name="point">The point.</param>
+	/// <param name="node">The node at the specified position if it exists; otherwise, an empty node.</param>
+	/// <returns>
+	///     <c>true</c> if the point is inside the bounds of the grid; otherwise, <c>false</c>.
+	/// </returns>
+	public bool TryGetNodeAtColumnRow(Point point, out PathingGridNode node) => TryGetNodeAtColumnRow(point.X, point.Y, out node);
+
+	/// <summary>
 	///     Determines whether column/row is inside the bounds of the grid and pathable.
 	/// </summary>
 	/// <param name="column">The column.</param>
@@ -207,16 +243,7 @@ public sealed class PathingPolygon : IPathingGrid
 	/// <param name="x">The x.</param>
 	/// <param name="y">The y.</param>
 	/// <returns>The node at the specified position or a blank node.</returns>
-	public PathingGridNode GetNodeAtXY(int x, int y)
-	{
-		foreach (var node in Nodes)
-		{
-			if (node.Bounds.Contains(x, y))
-				return node;
-		}
-
-		return new PathingGridNode(-1, -1, Rectangle.Empty, false);
-	}
+	public PathingGridNode GetNodeAtXY(int x, int y) => TryGetNodeAtXY(x, y, out var node) ? node : new PathingGridNode(-1, -1, Rectangle.Empty, false);
 
 	/// <summary>
 	///     Gets the node at 2D position.
@@ -224,6 +251,42 @@ public sealed class PathingPolygon : IPathingGrid
 	/// <param name="point">The point.</param>
 	/// <returns>The node at the specified position or a blank node.</returns>
 	public PathingGridNode GetNodeAtXY(Point point) => GetNodeAtXY(point.X, point.Y);
+
+	/// <summary>
+	///     Tries to get the node at 2D position.
+	/// </summary>
+	/// <param name="x">The x.</param>
+	/// <param name="y">The y.</param>
+	/// <param name="node">The node at the specified position if it exists; otherwise, an empty node.</param>
+	/// <returns>
+	///     <c>true</c> if x/y is inside the grid bounds; otherwise, <c>false</c>.
+	/// </returns>
+	public bool TryGetNodeAtXY(int x, int y, out PathingGridNode node)
+	{
+		if (Nodes == null || Nodes.Length == 0 || NodeWidth <= 0 || NodeHeight <= 0)
+		{
+			node = new PathingGridNode(-1, -1, Rectangle.Empty, false);
+			return false;
+		}
+
+		var column = (x - Bounds.X) / NodeWidth;
+		var row = (y - Bounds.Y) / NodeHeight;
+		if (TryGetNodeAtColumnRow(column, row, out node) && node.Bounds.Contains(x, y))
+			return true;
+
+		node = new PathingGridNode(-1, -1, Rectangle.Empty, false);
+		return false;
+	}
+
+	/// <summary>
+	///     Tries to get the node at 2D position.
+	/// </summary>
+	/// <param name="point">The point.</param>
+	/// <param name="node">The node at the specified position if it exists; otherwise, an empty node.</param>
+	/// <returns>
+	///     <c>true</c> if the point is inside the grid bounds; otherwise, <c>false</c>.
+	/// </returns>
+	public bool TryGetNodeAtXY(Point point, out PathingGridNode node) => TryGetNodeAtXY(point.X, point.Y, out node);
 
 	/// <summary>
 	///     Determines whether the specified testX/testY is inside the specified points.

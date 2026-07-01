@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Xna.Framework;
 
 namespace PolyPath;
@@ -39,15 +38,21 @@ public sealed class WaypointPath
 	#endregion
 
 	#region Properties
-	public Vector3? LastWaypoint => _waypoints.Count == 0 ? null : _waypoints.Last();
-	public int Length => _waypoints.Count;
-	public Vector3? NextWaypoint => _waypoints.Count == 0 ? null : _waypoints.First();
+	public Vector3? LastWaypoint => Length == 0 ? null : _waypoints[^1];
+	public int Length => Math.Max(0, _waypoints.Count - CurrentWaypointIndex);
+	public Vector3? NextWaypoint => CurrentWaypointIndex >= _waypoints.Count ? null : _waypoints[CurrentWaypointIndex];
+	public IReadOnlyList<Vector3> AllWaypoints => _waypoints;
+	public int CurrentWaypointIndex { get; private set; }
 	public int Depth { get; set; }
 
 	public Vector3[] Waypoints
 	{
-		get => _waypoints.ToArray();
-		set => _waypoints = [..value ?? Array.Empty<Vector3>()];
+		get => _waypoints.GetRange(CurrentWaypointIndex, Length).ToArray();
+		set
+		{
+			_waypoints = [..value ?? []];
+			CurrentWaypointIndex = 0;
+		}
 	}
 	#endregion
 
@@ -65,30 +70,42 @@ public sealed class WaypointPath
 	/// </summary>
 	/// <param name="waypoint">The waypoint.</param>
 	/// <param name="z">The z-axis value of the waypoint.</param>
-	public void AddWaypoint(Vector2 waypoint, float z = 0.0f) => _waypoints.Add(new Vector3(waypoint, z));
+	public void AddWaypoint(Vector2 waypoint, float z = 0.0f) => AddWaypoint(new Vector3(waypoint, z));
 
 	/// <summary>
 	///     Adds the waypoint.
 	/// </summary>
 	/// <param name="waypoint">The waypoint.</param>
-	public void AddWaypoint(Vector3 waypoint) => _waypoints.Add(waypoint);
+	public void AddWaypoint(Vector3 waypoint)
+	{
+		CompactConsumedWaypoints();
+		_waypoints.Add(waypoint);
+	}
 
 	/// <summary>
 	///     Adds the waypoints.
 	/// </summary>
 	/// <param name="newWaypoints">The new waypoints.</param>
-	public void AddWaypoints(IEnumerable<Vector3> newWaypoints) => _waypoints.AddRange(newWaypoints);
+	public void AddWaypoints(IEnumerable<Vector3> newWaypoints)
+	{
+		CompactConsumedWaypoints();
+		_waypoints.AddRange(newWaypoints);
+	}
 
 	/// <summary>
 	///     Adds the waypoints.
 	/// </summary>
 	/// <param name="newWaypoints">The new waypoints.</param>
-	public void AddWaypoints(params Vector3[] newWaypoints) => _waypoints.AddRange(newWaypoints);
+	public void AddWaypoints(params Vector3[] newWaypoints) => AddWaypoints((IEnumerable<Vector3>)newWaypoints);
 
 	/// <summary>
 	///     Clears all of the waypoints.
 	/// </summary>
-	public void Clear() => _waypoints.Clear();
+	public void Clear()
+	{
+		_waypoints.Clear();
+		CurrentWaypointIndex = 0;
+	}
 
 	/// <summary>
 	///     Draw the path for debug-mode.
@@ -99,11 +116,11 @@ public sealed class WaypointPath
 		if (drawLine == null)
 			return;
 
-		for (var index = 0; index < _waypoints.Count - 1; ++index)
+		for (var index = CurrentWaypointIndex; index < _waypoints.Count - 1; ++index)
 		{
 			var current = _waypoints[index];
 			var next = _waypoints[index + 1];
-			drawLine(current, next, index);
+			drawLine(current, next, index - CurrentWaypointIndex);
 		}
 	}
 
@@ -137,7 +154,7 @@ public sealed class WaypointPath
 	/// </summary>
 	/// <param name="index">The index where to insert the waypoint</param>
 	/// <param name="item">The waypoint to insert.</param>
-	public void InsertWaypoint(int index, Vector3 item) => _waypoints.Insert(index, item);
+	public void InsertWaypoint(int index, Vector3 item) => _waypoints.Insert(CurrentWaypointIndex + index, item);
 
 	/// <summary>
 	///     Insert a waypoint at the specified index. The waypoint that is currently at the specified index will be
@@ -154,11 +171,24 @@ public sealed class WaypointPath
 	/// <returns></returns>
 	public Vector3 PopWaypoint()
 	{
-		if (_waypoints == null || _waypoints.Count == 0)
+		if (_waypoints == null || CurrentWaypointIndex >= _waypoints.Count)
 			return Vector3.Zero;
-		var output = _waypoints.First();
-		_waypoints.RemoveAt(0);
+		var output = _waypoints[CurrentWaypointIndex];
+		++CurrentWaypointIndex;
 		return output;
+	}
+
+	private void CompactConsumedWaypoints()
+	{
+		if (CurrentWaypointIndex == 0)
+			return;
+
+		if (CurrentWaypointIndex >= _waypoints.Count)
+			_waypoints.Clear();
+		else
+			_waypoints.RemoveRange(0, CurrentWaypointIndex);
+
+		CurrentWaypointIndex = 0;
 	}
 	#endregion
 }
